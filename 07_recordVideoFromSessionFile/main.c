@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
   printf("Example 06 video");
   printf("\nUser Settings Dir: ");
   printf(userSettingsDir);
-  printf("\Sessionfile: ");
+  printf("\nSessionfile: ");
   printf(sessionfile);
   printf("\nRecording Dir: ");
   printf(recDir);

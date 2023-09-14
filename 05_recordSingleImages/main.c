@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
   fflush(stdout);
   cuvis_acq_cont_integration_time_set(acqCont, exposure_ms);
   cuvis_acq_cont_operation_mode_set(acqCont, OperationMode_Software);
-  cuvis_acq_cont_auto_exp_set(acqCont, 1);
+  
 
   printf("start recording now\n");
   fflush(stdout);
@@ -224,6 +224,7 @@ int main(int argc, char* argv[])
   cuvis_acq_cont_free(&acqCont);
   cuvis_calib_free(&calib);
   cuvis_worker_free(&worker);
+
   printf("finished.\n");
   fflush(stdout);
 }

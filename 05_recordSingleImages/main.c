@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
   fflush(stdout);
   cuvis_acq_cont_integration_time_set(acqCont, exposure_ms);
   cuvis_acq_cont_operation_mode_set(acqCont, OperationMode_Software);
-  ACQ_SET_SINGLE_VALUE(cuvis_acq_cont_auto_exp, CUVIS_INT, 1);
+  cuvis_acq_cont_auto_exp_set(acqCont, 1);
 
   printf("start recording now\n");
   fflush(stdout);

@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.20.0)
-project(Example_04 C)
+cmake_minimum_required(VERSION 3.16.0)
+project(04_changeDistance C)
 list(APPEND CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_LIST_DIR}/../cuvis.c/")
 find_package(Cuvis 3.2 REQUIRED)
-add_executable(Example_04 main.c)
-target_link_libraries(Example_04 PRIVATE cuvis::c)
+add_executable(04_changeDistance main.c)
+target_link_libraries(04_changeDistance PRIVATE cuvis::c)

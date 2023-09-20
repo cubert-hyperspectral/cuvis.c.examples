@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20.0)
+cmake_minimum_required(VERSION 3.16.0)
 project(CUVIS.C.EXMPLES C)
 add_subdirectory(01_loadMeasurement)
 add_subdirectory(02_reprocessMeasurement)

@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
   char* const distanceString = argv[3];
   char* const exportDir = argv[4];
 
-  int distance = atoi(distanceString);
+  int distance = atoi(distanceString); //in mm
 
   printf("Example 04 change distance cpp \n");
   printf(userSettingsDir);

@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
   char* const userSettingsDir = argv[1];
   char* const factoryDir = argv[2];
   char* const recDir = argv[3];
-  char* const exposureString = argv[4];
+  char* const exposureString = argv[4]; //in ms
   char* const nrImagesString = argv[5];
 
   int exposure_ms = atoi(exposureString);
@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
 
   CUVIS_WORKER_SETTINGS worker_settings;
   worker_settings.keep_out_of_sequence = 1;
-  worker_settings.poll_interval = 0;
+  worker_settings.poll_interval = 0; //in ms
   worker_settings.worker_count = 0;
   worker_settings.worker_queue_hard_limit = 2;
   worker_settings.worker_queue_soft_limit = 1;

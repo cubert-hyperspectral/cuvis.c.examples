@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
   char* const autoExpString = argv[5];
   char* const fpsString = argv[6];
 
-  int exposure_ms = atoi(exposureString);
+  int exposure_ms = atoi(exposureString); //in ms
   bool autoExp = false;
   if (atoi(autoExpString) == 1)
   {
@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
   CUVIS_WORKER worker;
   CUVIS_WORKER_SETTINGS worker_settings;
   worker_settings.keep_out_of_sequence = 0;
-  worker_settings.poll_interval = 10;
+  worker_settings.poll_interval = 10; //in ms
 #ifdef _DEBUG
   worker_settings.worker_count = 1;
 #else

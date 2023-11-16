@@ -106,6 +106,9 @@ int main(int argc, char* argv[])
   cube_settings.fps = fps;
   cube_settings.operation_mode = OperationMode_Internal;
   cube_settings.allow_info_file = 1;
+  cube_settings.hard_limit = 4;
+  cube_settings.soft_limit = 2;
+
 
   CUVIS_CHECK(cuvis_exporter_create_cube(
       &cube_exporter, general_settings, cube_settings));
@@ -183,7 +186,7 @@ int main(int argc, char* argv[])
   printf("initializing hardware...\n");
   fflush(stdout);
 
-  CUVIS_CHECK(cuvis_acq_cont_integration_time_set(acqCont, 100));
+  CUVIS_CHECK(cuvis_acq_cont_integration_time_set(acqCont, exposure_ms));
   CUVIS_CHECK(
       cuvis_acq_cont_operation_mode_set(acqCont, OperationMode_Internal));
   CUVIS_CHECK(cuvis_acq_cont_fps_set(acqCont, fps));

@@ -86,7 +86,6 @@ int main(int argc, char* argv[])
 
   // Settings for worker (processing pipeline)
   CUVIS_WORKER_SETTINGS worker_settings;
-  worker_settings.keep_out_of_sequence = 1;
   worker_settings.poll_interval = 5; //in ms
   worker_settings.worker_count = 1;
   worker_settings.worker_queue_hard_limit = 4;

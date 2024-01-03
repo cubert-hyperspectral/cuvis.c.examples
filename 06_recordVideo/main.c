@@ -197,7 +197,6 @@ int main(int argc, char* argv[])
   cuvis_acq_cont_preview_mode_set(acqCont, 1);
   CUVIS_WORKER worker;
   CUVIS_WORKER_SETTINGS worker_settings;
-  worker_settings.keep_out_of_sequence = 0;
   worker_settings.poll_interval = 10; //in ms
 #ifdef _DEBUG
   worker_settings.worker_count = 1;

@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
     "", //initializer list only takes const char*, leave empty and modify afterwards.
     "all",
-    1.0,
+    1,
     0.0,
     pan_sharpening_interpolation_type_NearestNeighbor,
     pan_sharpening_algorithm_Noop,

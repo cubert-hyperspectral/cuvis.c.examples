@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings_envi = {
       "", //initializer list only takes const char*, leave empty and modify afterwards.
       "all",
-      1.0,
+      1,
       0.0,
       pan_sharpening_interpolation_type_NearestNeighbor,
       pan_sharpening_algorithm_Noop,
@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings_single = {
       "", //initializer list only takes const char*, leave empty and modify afterwards.
       "all",
-      1.0,
+      1,
       0.0,
       pan_sharpening_interpolation_type_NearestNeighbor,
       pan_sharpening_algorithm_Noop,
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings_multi = {
       "", //initializer list only takes const char*, leave empty and modify afterwards.
       "all",
-      1.0,
+      1,
       0.0,
       pan_sharpening_interpolation_type_NearestNeighbor,
       pan_sharpening_algorithm_Noop,
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings_view = {
       "", //initializer list only takes const char*, leave empty and modify afterwards.
       "all",
-      1.0,
+      1,
       0.0,
       pan_sharpening_interpolation_type_NearestNeighbor,
       pan_sharpening_algorithm_Noop,
@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings_session = {
       "", //initializer list only takes const char*, leave empty and modify afterwards.
       "all",
-      1.0,
+      1,
       0.0,
       pan_sharpening_interpolation_type_NearestNeighbor,
       pan_sharpening_algorithm_Noop,

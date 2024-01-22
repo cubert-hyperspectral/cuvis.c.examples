@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
       "", //initializer list only takes const char*, leave empty and modify afterwards.
       "all",
-      1.0,
+      1,
       0.0,
       pan_sharpening_interpolation_type_NearestNeighbor,
       pan_sharpening_algorithm_Noop,
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
   fflush(stdout);
   CUVIS_INT compCount;
   CUVIS_CHECK(cuvis_acq_cont_get_component_count(acqCont, &compCount));
-  for (unsigned compIdx = 0; compIdx < compCount; compIdx++)
+  for (int compIdx = 0; compIdx < compCount; compIdx++)
   {
     CUVIS_INT online;
     CUVIS_COMPONENT_INFO cinfo;
@@ -194,7 +194,6 @@ int main(int argc, char* argv[])
   cuvis_acq_cont_preview_mode_set(acqCont, 1);
   CUVIS_WORKER worker;
   CUVIS_WORKER_SETTINGS worker_settings;
-  worker_settings.keep_out_of_sequence = 0;
   worker_settings.poll_interval = 10; //in ms
 #ifdef _DEBUG
   worker_settings.worker_count = 1;

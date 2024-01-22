@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
       "", //initializer list only takes const char*, leave empty and modify afterwards.
       "all",
-      1.0,
+      1,
       0.0,
       pan_sharpening_interpolation_type_NearestNeighbor,
       pan_sharpening_algorithm_Noop,
@@ -86,7 +86,6 @@ int main(int argc, char* argv[])
 
   // Settings for worker (processing pipeline)
   CUVIS_WORKER_SETTINGS worker_settings;
-  worker_settings.keep_out_of_sequence = 1;
   worker_settings.poll_interval = 5; //in ms
   worker_settings.worker_count = 1;
   worker_settings.worker_queue_hard_limit = 4;
@@ -132,7 +131,7 @@ int main(int argc, char* argv[])
   printf("camera components details:\n");
   CUVIS_INT compCount;
   CUVIS_CHECK(cuvis_acq_cont_get_component_count(acqCont, &compCount));
-  for (unsigned compIdx = 0; compIdx < compCount; compIdx++)
+  for (int compIdx = 0; compIdx < compCount; compIdx++)
   {
     CUVIS_INT online;
     CUVIS_COMPONENT_INFO cinfo;

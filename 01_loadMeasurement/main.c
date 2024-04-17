@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
   printf(sessionLoc);
 
   printf("\nloading user settings...\n");
-  CUVIS_CHECK(cuvis_init(userSettingsDir, loglevel_debug));
+  CUVIS_CHECK(cuvis_init(userSettingsDir));
   CUVIS_CHECK(cuvis_set_log_level(loglevel_info));
 
   printf("loading session...\n");

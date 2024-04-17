@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
 
   printf("loading user settings...\n");
   fflush(stdout);
-  CUVIS_CHECK(cuvis_init(userSettingsDir));
+  CUVIS_CHECK(cuvis_init(userSettingsDir, loglevel_debug));
 
   printf("loading calibration...\n");
   fflush(stdout);

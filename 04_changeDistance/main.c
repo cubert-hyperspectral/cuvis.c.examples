@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 
   printf("\nloading settings... \n");
   fflush(stdout);
-  CUVIS_CHECK(cuvis_init(userSettingsDir));
+  CUVIS_CHECK(cuvis_init(userSettingsDir, loglevel_debug));
 #ifdef _DEBUG
   CUVIS_CHECK(cuvis_set_log_level(loglevel_debug));
 #else

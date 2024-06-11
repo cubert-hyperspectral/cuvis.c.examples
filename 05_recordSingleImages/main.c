@@ -180,5 +180,6 @@ int main(int argc, char* argv[])
   cuvis_calib_free(&calib);
   cuvis_worker_free(&worker);
 
+  cuvis_shutdown();
   printf("finished.\n");
 }

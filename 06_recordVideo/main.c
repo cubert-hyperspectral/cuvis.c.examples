@@ -287,6 +287,8 @@ int main(int argc, char* argv[])
   cuvis_acq_cont_free(&acqCont);
   cuvis_proc_cont_free(&procCont);
   cuvis_calib_free(&calib);
+
+  cuvis_shutdown();
   printf("finished \n");
   fflush(stdout);
 }

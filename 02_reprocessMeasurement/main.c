@@ -273,4 +273,5 @@ int main(int argc, char* argv[])
   cuvis_session_file_free(&sessDark);
   cuvis_session_file_free(&sessWhite);
   cuvis_session_file_free(&sessDistance);
+  cuvis_shutdown();
 }

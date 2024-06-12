@@ -254,6 +254,7 @@ int main(int argc, char* argv[])
   cuvis_exporter_free(&multi_tiff_exporter);
   cuvis_exporter_free(&view_exporter);
   cuvis_exporter_free(&cube_exporter);
+  cuvis_shutdown();
 
   free(buffer);
   printf("finished.\n");

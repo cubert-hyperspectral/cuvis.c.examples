@@ -140,6 +140,7 @@ int main(int argc, char* argv[])
   cuvis_exporter_free(&cube_exporter);
   cuvis_proc_cont_free(&procCont);
   cuvis_measurement_free(&mesu);
+  cuvis_shutdown();
   printf("finished.");
   fflush(stdout);
 }

@@ -146,5 +146,6 @@ int main(int argc, char* argv[])
 
   cuvis_measurement_free(&mesu1);
   cuvis_session_file_free(&sess);
+  cuvis_shutdown();
   printf("finished.\n");
 }

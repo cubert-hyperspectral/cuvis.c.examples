@@ -86,11 +86,13 @@ int main(int argc, char* argv[])
 
   // Settings for worker (processing pipeline)
   CUVIS_WORKER_SETTINGS worker_settings;
-  worker_settings.poll_interval = 5; //in ms
-  worker_settings.worker_count = 1;
-  worker_settings.worker_queue_hard_limit = 4;
-  worker_settings.worker_queue_soft_limit = 2;
-  worker_settings.can_drop = 0;
+  worker_settings.can_drop_results = 0;
+  worker_settings.can_skip_measurements = 0;
+  worker_settings.can_skip_supplementary_steps = 0;
+  worker_settings.input_queue_size = 10;
+  worker_settings.output_queue_size = 5;
+  worker_settings.mandatory_queue_size = 2;
+  worker_settings.supplementary_queue_size = 2;
 
   cuvis_exporter_create_cube(&cube_exporter, general_settings, cube_settings);
 
@@ -163,6 +165,7 @@ int main(int argc, char* argv[])
   CUVIS_CHECK(cuvis_worker_set_exporter(worker, cube_exporter));
 
   printf("start recording now\n");
+  CUVIS_CHECK(cuvis_worker_start(worker));
 
   for (int k = 0; k < nrImages; k++)
   {
@@ -172,6 +175,7 @@ int main(int argc, char* argv[])
     printf("waiting for processing...\n");
     CUVIS_CHECK(cuvis_worker_get_next_result(worker, NULL, NULL, exposure_ms + 2000));
   }
+  CUVIS_CHECK(cuvis_worker_stop(worker));
   printf("done. cleaning up...\n");
 
   cuvis_exporter_free(&cube_exporter);

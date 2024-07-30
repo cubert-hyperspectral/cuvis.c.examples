@@ -78,10 +78,8 @@ int main(int argc, char* argv[])
 
   printf("loading acquisition context... \n");
   fflush(stdout);
-  CUVIS_CHECK(cuvis_acq_cont_create_from_session_file(
-      sessFile,
-      1,
-      &acqCont)); // simulating = true --> use frames from sessionfile instead of real camera
+  CUVIS_CHECK(cuvis_acq_cont_create_from_session_file(sessFile, 1,
+                                                      &acqCont)); // simulating = true --> use frames from sessionfile instead of real camera
 
   printf("load processing context \n");
   fflush(stdout);
@@ -111,8 +109,7 @@ int main(int argc, char* argv[])
   cube_settings.operation_mode = OperationMode_Internal;
   cube_settings.allow_info_file = 1;
 
-  CUVIS_CHECK(cuvis_exporter_create_cube(
-      &cube_exporter, general_settings, cube_settings));
+  CUVIS_CHECK(cuvis_exporter_create_cube(&cube_exporter, general_settings, cube_settings));
 
   CUVIS_PROC_ARGS procArgs;
   procArgs.allow_recalib = 0;
@@ -184,8 +181,7 @@ int main(int argc, char* argv[])
   fflush(stdout);
 
   CUVIS_CHECK(cuvis_acq_cont_integration_time_set(acqCont, 100));
-  CUVIS_CHECK(
-      cuvis_acq_cont_operation_mode_set(acqCont, OperationMode_Internal));
+  CUVIS_CHECK(cuvis_acq_cont_operation_mode_set(acqCont, OperationMode_Internal));
   CUVIS_CHECK(cuvis_acq_cont_fps_set(acqCont, fps));
   CUVIS_CHECK(cuvis_acq_cont_queue_size_set(acqCont, 10));
   CUVIS_CHECK(cuvis_acq_cont_continuous_set(acqCont, 0));
@@ -194,17 +190,13 @@ int main(int argc, char* argv[])
   cuvis_acq_cont_preview_mode_set(acqCont, 1);
   CUVIS_WORKER worker;
   CUVIS_WORKER_SETTINGS worker_settings;
-  worker_settings.poll_interval = 10; //in ms
-#ifdef _DEBUG
-  worker_settings.worker_count = 1;
-#else
-  worker_settings.worker_count =
-      0; // =0 automatically sets the worker to the systems number of V-Cores
-#endif
-
-  worker_settings.worker_queue_hard_limit = 20;
-  worker_settings.worker_queue_soft_limit = 20 - worker_settings.worker_count;
-  worker_settings.can_drop = 1;
+  worker_settings.can_skip_measurements = 0;        // Worker cannot skip exporting measurements
+  worker_settings.can_skip_supplementary_steps = 1; // Worker can skip view generation
+  worker_settings.can_drop_results = 1;             // Worker can drop results from the output queue, if it is full
+  worker_settings.input_queue_size = 10;
+  worker_settings.output_queue_size = 5;
+  worker_settings.mandatory_queue_size = 2;
+  worker_settings.supplementary_queue_size = 2;
   cuvis_worker_create(&worker, worker_settings);
 
   cuvis_worker_set_acq_cont(worker, acqCont);
@@ -218,31 +210,18 @@ int main(int argc, char* argv[])
   printf("recording...\n");
   fflush(stdout);
   CUVIS_CHECK(cuvis_acq_cont_continuous_set(acqCont, 1));
+  CUVIS_CHECK(cuvis_worker_start(worker));
+  
 
   CUVIS_INT used_queue;
   CUVIS_INT queue_limit;
 
   while (0 != keepRunning)
   {
-    CUVIS_MESU mesu;
-    CUVIS_INT hasNext = 0;
-    do
-    {
-      cuvis_worker_has_next_result(worker, &hasNext);
+    CUVIS_MESU mesu = 0;
 
-      if (hasNext != 0)
-      {
-        break;
-      }
-#ifdef WIN32
-      Sleep(10);
-#else
-      usleep(10000);
-#endif
-    } while (0 != keepRunning);
-
-    cuvis_worker_get_queue_limits(worker, &queue_limit, NULL);
-    cuvis_worker_get_queue_used(worker, &used_queue);
+    queue_limit = worker_settings.mandatory_queue_size + worker_settings.supplementary_queue_size;
+    cuvis_worker_get_threads_busy(worker, &used_queue);
     if (used_queue == queue_limit)
     {
       printf("Worker queue is full! Main() loop can not keep up!");
@@ -257,7 +236,12 @@ int main(int argc, char* argv[])
       fflush(stdout);
     }
 
-    if (cuvis_worker_get_next_result(acqCont, &mesu, NULL, 0) != status_ok)
+    CUVIS_STATUS ret = cuvis_worker_get_next_result(acqCont, &mesu, NULL, 1000);
+    if (ret == status_not_available)
+    {
+      printf("Worker has no measurement ready yet...");
+    }
+    else if (ret != status_ok)
     {
       printf("Worker error, details: %s\n", cuvis_get_last_error_msg());
       fflush(stdout);
@@ -267,8 +251,7 @@ int main(int argc, char* argv[])
     {
       CUVIS_MESU_METADATA mesu_data;
       CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
-      printf(
-          "\rcurrent handle index: %04d", mesu_data.session_info_sequence_no);
+      printf("\rcurrent handle index: %04d", mesu_data.session_info_sequence_no);
       fflush(stdout);
 
       cuvis_measurement_free(&mesu);
@@ -278,6 +261,9 @@ int main(int argc, char* argv[])
 
   printf("cleaning up\n");
   fflush(stdout);
+  CUVIS_CHECK(cuvis_acq_cont_continuous_set(acqCont, 0));
+  CUVIS_CHECK(cuvis_worker_stop(worker));
+  CUVIS_CHECK(cuvis_worker_drop_all_queued(worker));
   cuvis_worker_free(&worker);
   cuvis_exporter_free(&cube_exporter);
   cuvis_acq_cont_free(&acqCont);

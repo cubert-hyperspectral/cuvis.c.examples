@@ -197,17 +197,13 @@ int main(int argc, char* argv[])
   cuvis_acq_cont_preview_mode_set(acqCont, 1);
   CUVIS_WORKER worker;
   CUVIS_WORKER_SETTINGS worker_settings;
-  worker_settings.poll_interval = 10; //in ms
-#ifdef _DEBUG
-  worker_settings.worker_count = 1;
-#else
-  worker_settings.worker_count =
-      0; // =0 automatically sets the worker to the systems number of V-Cores
-#endif
-
-  worker_settings.worker_queue_hard_limit = 20;
-  worker_settings.worker_queue_soft_limit = 20 - worker_settings.worker_count;
-  worker_settings.can_drop = 1;
+  worker_settings.can_skip_measurements = 0;       // Worker cannot skip exporting measurements
+  worker_settings.can_skip_supplementary_steps = 1; // Worker can skip view generation
+  worker_settings.can_drop_results = 1;             // Worker can drop results from the output queue, if it is full
+  worker_settings.input_queue_size = 10;
+  worker_settings.output_queue_size = 5;
+  worker_settings.mandatory_queue_size = 2;
+  worker_settings.supplementary_queue_size = 2;
   cuvis_worker_create(&worker, worker_settings);
 
   cuvis_worker_set_acq_cont(worker, acqCont);
@@ -221,32 +217,18 @@ int main(int argc, char* argv[])
   printf("recording...\n");
   fflush(stdout);
   CUVIS_CHECK(cuvis_acq_cont_continuous_set(acqCont, 1));
+  CUVIS_CHECK(cuvis_worker_start(worker));
 
   CUVIS_INT used_queue;
   CUVIS_INT queue_limit;
 
   while (0 != keepRunning)
   {
-    CUVIS_MESU mesu;
-    CUVIS_INT hasNext = 0;
-    do
-    {
-      cuvis_worker_has_next_result(worker, &hasNext);
+    CUVIS_MESU mesu = 0;
 
-      if (hasNext != 0)
-      {
-        break;
-      }
-#ifdef WIN32
-      Sleep(10);
-#else
-      usleep(10000);
-#endif
 
-    } while (0 != keepRunning);
-
-    cuvis_worker_get_queue_limits(worker, &queue_limit, NULL);
-    cuvis_worker_get_queue_used(worker, &used_queue);
+    queue_limit = 4;
+    cuvis_worker_get_threads_busy(worker, &used_queue);
     if (used_queue == queue_limit)
     {
       printf("Worker queue is full! Main() loop can not keep up!");
@@ -261,7 +243,12 @@ int main(int argc, char* argv[])
       fflush(stdout);
     }
 
-    if (cuvis_worker_get_next_result(acqCont, &mesu, NULL, 0) != status_ok)
+    CUVIS_STATUS ret;
+    ret = cuvis_worker_get_next_result(worker, &mesu, NULL, exposure_ms + 200);
+    if (ret == status_not_available) {
+      printf("Worker has no measurement ready yet...");
+    }
+    else if (ret != status_ok)
     {
       printf("Worker error, details: %s\n", cuvis_get_last_error_msg());
       fflush(stdout);
@@ -282,6 +269,9 @@ int main(int argc, char* argv[])
 
   printf("cleaning up\n");
   fflush(stdout);
+  CUVIS_CHECK(cuvis_acq_cont_continuous_set(acqCont, 0));
+  CUVIS_CHECK(cuvis_worker_stop(worker));
+  CUVIS_CHECK(cuvis_worker_drop_all_queued(worker));
   cuvis_worker_free(&worker);
   cuvis_exporter_free(&cube_exporter);
   cuvis_acq_cont_free(&acqCont);

@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
   CUVIS_CHECK(cuvis_acq_cont_continuous_set(acqCont, 0));
   CUVIS_CHECK(cuvis_proc_cont_set_args(procCont, procArgs));
 
-  cuvis_acq_cont_preview_mode_set(acqCont, 1);
+  cuvis_acq_cont_binning_set(acqCont, 1);
   CUVIS_WORKER worker;
   CUVIS_WORKER_SETTINGS worker_settings;
   worker_settings.can_skip_measurements = 0;       // Worker cannot skip exporting measurements

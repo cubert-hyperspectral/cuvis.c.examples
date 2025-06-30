@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
 
   printf("loading user settings...\n");
   fflush(stdout);
-  CUVIS_CHECK(cuvis_init(userSettingsDir, loglevel_debug));
+  CUVIS_CHECK(cuvis_init(userSettingsDir, loglevel_debug, NULL));
 
   printf("loading session file... \n");
   fflush(stdout);

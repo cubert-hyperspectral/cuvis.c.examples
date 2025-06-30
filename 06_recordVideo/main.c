@@ -4,12 +4,33 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 
 #ifdef WIN32
   #include <Windows.h>
 #else
   #include <unistd.h>
 #endif
+
+bool is_directory(const char* path)
+{
+    struct stat s;
+    if (stat(path, &s) == 0)
+    {
+        return (s.st_mode & S_IFDIR) != 0;
+    }
+    return false;
+}
+
+bool is_file(const char* path)
+{
+    struct stat s;
+    if (stat(path, &s) == 0)
+    {
+        return (s.st_mode & S_IFREG) != 0;
+    }
+    return false;
+}
 
 int keepRunning = 1;
 
@@ -70,11 +91,28 @@ int main(int argc, char* argv[])
 
   printf("loading user settings...\n");
   fflush(stdout);
-  CUVIS_CHECK(cuvis_init(userSettingsDir, loglevel_debug));
+  CUVIS_CHECK(cuvis_init(userSettingsDir, loglevel_debug, NULL));
 
   printf("loading calibration...\n");
   fflush(stdout);
-  CUVIS_CHECK(cuvis_calib_create_from_path(factoryDir, &calib));
+  if (is_directory(factoryDir))
+  {
+      CUVIS_CHECK(cuvis_calib_create_from_path(factoryDir, &calib));
+  }
+  else if (is_file(factoryDir) && strstr(factoryDir, ".cu3c") != NULL)
+  {
+      printf("using .cu3c file as calibration instead of factory dir...\n");
+
+      CUVIS_SESSION_FILE sessionFile;
+      CUVIS_CHECK(cuvis_session_file_load(factoryDir, &sessionFile));
+      CUVIS_CHECK(cuvis_calib_create_from_session_file(sessionFile, &calib));
+      cuvis_session_file_free(&sessionFile);
+  }
+  else
+  {
+      fprintf(stderr, "Unrecognized file format: %s\n", factoryDir);
+      return -1;
+  }
 
   printf("loading acquisition context... \n");
   fflush(stdout);

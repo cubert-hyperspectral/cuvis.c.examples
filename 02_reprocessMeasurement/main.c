@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   if (argc != 7)
   {
@@ -17,12 +17,12 @@ int main(int argc, char* argv[])
     return -1;
   }
 
-  char* const userSettingsDir = argv[1];
-  char* const measurementLoc = argv[2];
-  char* const darkLoc = argv[3];
-  char* const whiteLoc = argv[4];
-  char* const distanceLoc = argv[5];
-  char* const outDir = argv[6];
+  char *const userSettingsDir = argv[1];
+  char *const measurementLoc = argv[2];
+  char *const darkLoc = argv[3];
+  char *const whiteLoc = argv[4];
+  char *const distanceLoc = argv[5];
+  char *const outDir = argv[6];
 
   printf("Example 02 reprocess measurement \n");
   printf("user Settings Dir: ");
@@ -97,17 +97,17 @@ int main(int argc, char* argv[])
   CUVIS_CHECK(cuvis_proc_cont_is_capable(procCont, mesu, args, &is_capable));
 
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-    "", //initializer list only takes const char*, leave empty and modify afterwards.
-    "all",
-    1,
-    0.0,
-    pan_sharpening_interpolation_type_NearestNeighbor,
-    pan_sharpening_algorithm_Noop,
-    0,
-    0};
+      "", // initializer list only takes const char*, leave empty and modify afterwards.
+      "all",
+      1,
+      0.0,
+      pan_sharpening_interpolation_type_NearestNeighbor,
+      pan_sharpening_algorithm_Noop,
+      0,
+      0};
 
   CUVIS_EXPORT_CUBE_SETTINGS cube_settings;
-  cube_settings.allow_fragmentation = 0;
+  cube_settings.merge_mode = cube_merge_mode_Default;
   cube_settings.allow_overwrite = 1;
   cube_settings.allow_session_file = 1;
   cube_settings.operation_mode = OperationMode_Internal;

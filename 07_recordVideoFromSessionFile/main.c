@@ -6,9 +6,9 @@
 #include <stdlib.h>
 
 #ifdef WIN32
-  #include <Windows.h>
+#include <Windows.h>
 #else
-  #include <unistd.h>
+#include <unistd.h>
 #endif
 
 int keepRunning = 1;
@@ -21,7 +21,7 @@ void signal_handler(int sig)
   keepRunning = 0;
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   if (argc != 7)
   {
@@ -37,14 +37,14 @@ int main(int argc, char* argv[])
     return -1;
   }
 
-  char* const userSettingsDir = argv[1];
-  char* const sessionfile = argv[2];
-  char* const recDir = argv[3];
-  char* const exposureString = argv[4]; //in ms
-  char* const autoExpString = argv[5];
-  char* const fpsString = argv[6];
+  char *const userSettingsDir = argv[1];
+  char *const sessionfile = argv[2];
+  char *const recDir = argv[3];
+  char *const exposureString = argv[4]; // in ms
+  char *const autoExpString = argv[5];
+  char *const fpsString = argv[6];
 
-  int exposure_ms = atoi(exposureString); //in ms
+  int exposure_ms = atoi(exposureString); // in ms
   bool autoExp = false;
   if (atoi(autoExpString) == 1)
   {
@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
   CUVIS_EXPORTER cube_exporter;
 
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-      "", //initializer list only takes const char*, leave empty and modify afterwards.
+      "", // initializer list only takes const char*, leave empty and modify afterwards.
       "all",
       1,
       0.0,
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
   strcpy(general_settings.export_dir, recDir);
 
   CUVIS_EXPORT_CUBE_SETTINGS cube_settings;
-  cube_settings.allow_fragmentation = 0;
+  cube_settings.merge_mode = cube_merge_mode_Default;
   cube_settings.allow_overwrite = 1;
   cube_settings.allow_session_file = 1;
   cube_settings.fps = fps;
@@ -210,7 +210,6 @@ int main(int argc, char* argv[])
   fflush(stdout);
   CUVIS_CHECK(cuvis_acq_cont_continuous_set(acqCont, 1));
   CUVIS_CHECK(cuvis_worker_start(worker));
-  
 
   CUVIS_INT used_queue;
   CUVIS_INT queue_limit;

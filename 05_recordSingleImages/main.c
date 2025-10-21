@@ -6,33 +6,32 @@
 #include <sys/stat.h>
 
 #ifdef WIN32
-  #include <Windows.h>
+#include <Windows.h>
 #else
-  #include <unistd.h>
+#include <unistd.h>
 #endif
 
-bool is_directory(const char* path)
+bool is_directory(const char *path)
 {
-    struct stat s;
-    if (stat(path, &s) == 0)
-    {
-        return (s.st_mode & S_IFDIR) != 0;
-    }
-    return false;
+  struct stat s;
+  if (stat(path, &s) == 0)
+  {
+    return (s.st_mode & S_IFDIR) != 0;
+  }
+  return false;
 }
 
-bool is_file(const char* path)
+bool is_file(const char *path)
 {
-    struct stat s;
-    if (stat(path, &s) == 0)
-    {
-        return (s.st_mode & S_IFREG) != 0;
-    }
-    return false;
+  struct stat s;
+  if (stat(path, &s) == 0)
+  {
+    return (s.st_mode & S_IFREG) != 0;
+  }
+  return false;
 }
 
-
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   if (argc != 6)
   {
@@ -45,11 +44,11 @@ int main(int argc, char* argv[])
     return -1;
   }
 
-  char* const userSettingsDir = argv[1];
-  char* const factoryDir = argv[2];
-  char* const recDir = argv[3];
-  char* const exposureString = argv[4]; //in ms
-  char* const nrImagesString = argv[5];
+  char *const userSettingsDir = argv[1];
+  char *const factoryDir = argv[2];
+  char *const recDir = argv[3];
+  char *const exposureString = argv[4]; // in ms
+  char *const nrImagesString = argv[5];
 
   int exposure_ms = atoi(exposureString);
   int nrImages = atoi(nrImagesString);
@@ -76,23 +75,22 @@ int main(int argc, char* argv[])
 
   if (is_directory(factoryDir))
   {
-      CUVIS_CHECK(cuvis_calib_create_from_path(factoryDir, &calib));
+    CUVIS_CHECK(cuvis_calib_create_from_path(factoryDir, &calib));
   }
   else if (is_file(factoryDir) && strstr(factoryDir, ".cu3c") != NULL)
   {
-      printf("using .cu3c file as calibration instead of factory dir...\n");
+    printf("using .cu3c file as calibration instead of factory dir...\n");
 
-      CUVIS_SESSION_FILE sessionFile;
-      CUVIS_CHECK(cuvis_session_file_load(factoryDir, &sessionFile));
-      CUVIS_CHECK(cuvis_calib_create_from_session_file(sessionFile, &calib));
-      cuvis_session_file_free(&sessionFile);
+    CUVIS_SESSION_FILE sessionFile;
+    CUVIS_CHECK(cuvis_session_file_load(factoryDir, &sessionFile));
+    CUVIS_CHECK(cuvis_calib_create_from_session_file(sessionFile, &calib));
+    cuvis_session_file_free(&sessionFile);
   }
   else
   {
-      fprintf(stderr, "Unrecognized file format: %s\n", factoryDir);
-      return -1;
+    fprintf(stderr, "Unrecognized file format: %s\n", factoryDir);
+    return -1;
   }
-
 
   printf("initialize processing context...\n");
   CUVIS_CHECK(cuvis_proc_cont_create_from_calib(calib, &procCont));
@@ -105,7 +103,7 @@ int main(int argc, char* argv[])
 
   // Export settings: General processing of measurements
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-      "", //initializer list only takes const char*, leave empty and modify afterwards.
+      "", // initializer list only takes const char*, leave empty and modify afterwards.
       "all",
       1,
       0.0,
@@ -118,7 +116,7 @@ int main(int argc, char* argv[])
 
   // Cube exporter specific settings
   CUVIS_EXPORT_CUBE_SETTINGS cube_settings;
-  cube_settings.allow_fragmentation = 0;
+  cube_settings.merge_mode = cube_merge_mode_Default;
   cube_settings.allow_overwrite = 1;
   cube_settings.allow_session_file = 1;
   cube_settings.allow_info_file = 1;

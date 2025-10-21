@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   if (argc != 5)
   {
@@ -17,12 +17,12 @@ int main(int argc, char* argv[])
     return -1;
   }
 
-  char* const userSettingsDir = argv[1];
-  char* const sessionLoc = argv[2];
-  char* const distanceString = argv[3];
-  char* const exportDir = argv[4];
+  char *const userSettingsDir = argv[1];
+  char *const sessionLoc = argv[2];
+  char *const distanceString = argv[3];
+  char *const exportDir = argv[4];
 
-  int distance = atoi(distanceString); //in mm
+  int distance = atoi(distanceString); // in mm
 
   printf("Example 04 change distance cpp \n");
   printf(userSettingsDir);
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
   CUVIS_EXPORTER cube_exporter;
 
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-      "", //initializer list only takes const char*, leave empty and modify afterwards.
+      "", // initializer list only takes const char*, leave empty and modify afterwards.
       "all",
       1,
       0.0,
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
   strcpy(general_settings.export_dir, exportDir);
 
   CUVIS_EXPORT_CUBE_SETTINGS cube_settings;
-  cube_settings.allow_fragmentation = 0;
+  cube_settings.merge_mode = cube_merge_mode_Default;
   cube_settings.allow_overwrite = 1;
   cube_settings.allow_session_file = 1;
 
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
 
   printf("Set distance ...");
   fflush(stdout);
-  //CUVIS_CHECK(cuvis_proc_cont_calc_distance(procCont, distance)); // throws error on pan image
+  // CUVIS_CHECK(cuvis_proc_cont_calc_distance(procCont, distance)); // throws error on pan image
   cuvis_proc_cont_calc_distance(procCont, distance);
   printf(" done. \n");
   fflush(stdout);

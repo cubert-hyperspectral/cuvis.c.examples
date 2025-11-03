@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 
   // Cube exporter specific settings
   CUVIS_EXPORT_CUBE_SETTINGS cube_settings;
-  cube_settings.merge_mode = cube_merge_mode_Default;
+  cube_settings.merge_mode = session_merge_mode_Default;
   cube_settings.allow_overwrite = 1;
   cube_settings.allow_session_file = 1;
   cube_settings.allow_info_file = 1;

@@ -14,22 +14,22 @@
 
 bool is_directory(const char* path)
 {
-    struct stat s;
-    if (stat(path, &s) == 0)
-    {
-        return (s.st_mode & S_IFDIR) != 0;
-    }
-    return false;
+  struct stat s;
+  if (stat(path, &s) == 0)
+  {
+    return (s.st_mode & S_IFDIR) != 0;
+  }
+  return false;
 }
 
 bool is_file(const char* path)
 {
-    struct stat s;
-    if (stat(path, &s) == 0)
-    {
-        return (s.st_mode & S_IFREG) != 0;
-    }
-    return false;
+  struct stat s;
+  if (stat(path, &s) == 0)
+  {
+    return (s.st_mode & S_IFREG) != 0;
+  }
+  return false;
 }
 
 int keepRunning = 1;
@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
   char* const autoExpString = argv[5];
   char* const fpsString = argv[6];
 
-  int exposure_ms = atoi(exposureString); //in ms
+  int exposure_ms = atoi(exposureString); // in ms
   bool autoExp = false;
   if (atoi(autoExpString) == 1)
   {
@@ -97,21 +97,21 @@ int main(int argc, char* argv[])
   fflush(stdout);
   if (is_directory(factoryDir))
   {
-      CUVIS_CHECK(cuvis_calib_create_from_path(factoryDir, &calib));
+    CUVIS_CHECK(cuvis_calib_create_from_path(factoryDir, &calib));
   }
   else if (is_file(factoryDir) && strstr(factoryDir, ".cu3c") != NULL)
   {
-      printf("using .cu3c file as calibration instead of factory dir...\n");
+    printf("using .cu3c file as calibration instead of factory dir...\n");
 
-      CUVIS_SESSION_FILE sessionFile;
-      CUVIS_CHECK(cuvis_session_file_load(factoryDir, &sessionFile));
-      CUVIS_CHECK(cuvis_calib_create_from_session_file(sessionFile, &calib));
-      cuvis_session_file_free(&sessionFile);
+    CUVIS_SESSION_FILE sessionFile;
+    CUVIS_CHECK(cuvis_session_file_load(factoryDir, &sessionFile));
+    CUVIS_CHECK(cuvis_calib_create_from_session_file(sessionFile, &calib));
+    cuvis_session_file_free(&sessionFile);
   }
   else
   {
-      fprintf(stderr, "Unrecognized file format: %s\n", factoryDir);
-      return -1;
+    fprintf(stderr, "Unrecognized file format: %s\n", factoryDir);
+    return -1;
   }
 
   printf("loading acquisition context... \n");
@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
   CUVIS_EXPORTER cube_exporter;
 
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-      "", //initializer list only takes const char*, leave empty and modify afterwards.
+      "", // initializer list only takes const char*, leave empty and modify afterwards.
       "all",
       1,
       0.0,
@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
   strcpy(general_settings.export_dir, recDir);
 
   CUVIS_EXPORT_CUBE_SETTINGS cube_settings;
-  cube_settings.allow_fragmentation = 0;
+  cube_settings.merge_mode = session_merge_mode_Default;
   cube_settings.allow_overwrite = 1;
   cube_settings.allow_session_file = 1;
   cube_settings.fps = fps;
@@ -147,9 +147,7 @@ int main(int argc, char* argv[])
   cube_settings.hard_limit = 4;
   cube_settings.soft_limit = 2;
 
-
-  CUVIS_CHECK(cuvis_exporter_create_cube(
-      &cube_exporter, general_settings, cube_settings));
+  CUVIS_CHECK(cuvis_exporter_create_cube(&cube_exporter, general_settings, cube_settings));
 
   CUVIS_PROC_ARGS procArgs;
   procArgs.allow_recalib = 0;
@@ -225,8 +223,7 @@ int main(int argc, char* argv[])
   fflush(stdout);
 
   CUVIS_CHECK(cuvis_acq_cont_integration_time_set(acqCont, exposure_ms));
-  CUVIS_CHECK(
-      cuvis_acq_cont_operation_mode_set(acqCont, OperationMode_Internal));
+  CUVIS_CHECK(cuvis_acq_cont_operation_mode_set(acqCont, OperationMode_Internal));
   CUVIS_CHECK(cuvis_acq_cont_fps_set(acqCont, fps));
   CUVIS_CHECK(cuvis_acq_cont_queue_size_set(acqCont, 10));
   CUVIS_CHECK(cuvis_acq_cont_continuous_set(acqCont, 0));
@@ -234,7 +231,7 @@ int main(int argc, char* argv[])
 
   CUVIS_WORKER worker;
   CUVIS_WORKER_SETTINGS worker_settings;
-  worker_settings.can_skip_measurements = 0;       // Worker cannot skip exporting measurements
+  worker_settings.can_skip_measurements = 0;        // Worker cannot skip exporting measurements
   worker_settings.can_skip_supplementary_steps = 1; // Worker can skip view generation
   worker_settings.can_drop_results = 1;             // Worker can drop results from the output queue, if it is full
   worker_settings.input_queue_size = 10;
@@ -263,7 +260,6 @@ int main(int argc, char* argv[])
   {
     CUVIS_MESU mesu = 0;
 
-
     queue_limit = 4;
     cuvis_worker_get_threads_busy(worker, &used_queue);
     if (used_queue == queue_limit)
@@ -282,7 +278,8 @@ int main(int argc, char* argv[])
 
     CUVIS_STATUS ret;
     ret = cuvis_worker_get_next_result(worker, &mesu, NULL, exposure_ms + 200);
-    if (ret == status_not_available) {
+    if (ret == status_not_available)
+    {
       printf("Worker has no measurement ready yet...");
     }
     else if (ret != status_ok)
@@ -295,8 +292,7 @@ int main(int argc, char* argv[])
     {
       CUVIS_MESU_METADATA mesu_data;
       CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
-      printf(
-          "\rcurrent handle index: %04d", mesu_data.session_info_sequence_no);
+      printf("\rcurrent handle index: %04d", mesu_data.session_info_sequence_no);
       fflush(stdout);
 
       cuvis_measurement_free(&mesu);

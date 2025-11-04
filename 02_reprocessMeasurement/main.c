@@ -72,12 +72,7 @@ int main(int argc, char* argv[])
   CUVIS_CHECK(cuvis_session_file_get_mesu(sessDistance, 0, session_item_type_frames_no_gaps, &distance));
 
   CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
-  printf(
-      "data 1 %s %.2f ms mode=%d flags=%d\n",
-      mesu_data.name,
-      mesu_data.integration_time,
-      mesu_data.processing_mode,
-      mesu_data.measurement_flags);
+  printf("data 1 %s %.2f ms mode=%d flags=%d\n", mesu_data.name, mesu_data.integration_time, mesu_data.processing_mode, mesu_data.measurement_flags);
   fflush(stdout);
 
   printf("Load processing context...\n");
@@ -97,17 +92,17 @@ int main(int argc, char* argv[])
   CUVIS_CHECK(cuvis_proc_cont_is_capable(procCont, mesu, args, &is_capable));
 
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-    "", //initializer list only takes const char*, leave empty and modify afterwards.
-    "all",
-    1,
-    0.0,
-    pan_sharpening_interpolation_type_NearestNeighbor,
-    pan_sharpening_algorithm_Noop,
-    0,
-    0};
+      "", // initializer list only takes const char*, leave empty and modify afterwards.
+      "all",
+      1,
+      0.0,
+      pan_sharpening_interpolation_type_NearestNeighbor,
+      pan_sharpening_algorithm_Noop,
+      0,
+      0};
 
   CUVIS_EXPORT_CUBE_SETTINGS cube_settings;
-  cube_settings.allow_fragmentation = 0;
+  cube_settings.merge_mode = session_merge_mode_Default;
   cube_settings.allow_overwrite = 1;
   cube_settings.allow_session_file = 1;
   cube_settings.operation_mode = OperationMode_Internal;
@@ -124,12 +119,7 @@ int main(int argc, char* argv[])
     fflush(stdout);
 
     CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
-    printf(
-        "data 1 %s %.2f ms mode=%d flags=%d\n",
-        mesu_data.name,
-        mesu_data.integration_time,
-        mesu_data.processing_mode,
-        mesu_data.measurement_flags);
+    printf("data 1 %s %.2f ms mode=%d flags=%d\n", mesu_data.name, mesu_data.integration_time, mesu_data.processing_mode, mesu_data.measurement_flags);
     fflush(stdout);
 
     char exportDirRAW[CUVIS_MAXBUF];
@@ -138,8 +128,7 @@ int main(int argc, char* argv[])
 
     strcpy(general_settings.export_dir, exportDirRAW);
     CUVIS_EXPORTER cube_exporter;
-    CUVIS_CHECK(cuvis_exporter_create_cube(
-        &cube_exporter, general_settings, cube_settings));
+    CUVIS_CHECK(cuvis_exporter_create_cube(&cube_exporter, general_settings, cube_settings));
     CUVIS_CHECK(cuvis_exporter_apply(cube_exporter, mesu));
     cuvis_exporter_free(&cube_exporter);
   }
@@ -162,12 +151,7 @@ int main(int argc, char* argv[])
     fflush(stdout);
 
     CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
-    printf(
-        "data 1 %s %.2f ms mode=%d flags=%d\n",
-        mesu_data.name,
-        mesu_data.integration_time,
-        mesu_data.processing_mode,
-        mesu_data.measurement_flags);
+    printf("data 1 %s %.2f ms mode=%d flags=%d\n", mesu_data.name, mesu_data.integration_time, mesu_data.processing_mode, mesu_data.measurement_flags);
     fflush(stdout);
 
     char exportDirDS[CUVIS_MAXBUF];
@@ -176,8 +160,7 @@ int main(int argc, char* argv[])
 
     strcpy(general_settings.export_dir, exportDirDS);
     CUVIS_EXPORTER cube_exporter;
-    CUVIS_CHECK(cuvis_exporter_create_cube(
-        &cube_exporter, general_settings, cube_settings));
+    CUVIS_CHECK(cuvis_exporter_create_cube(&cube_exporter, general_settings, cube_settings));
     CUVIS_CHECK(cuvis_exporter_apply(cube_exporter, mesu));
     cuvis_exporter_free(&cube_exporter);
   }
@@ -201,12 +184,7 @@ int main(int argc, char* argv[])
     fflush(stdout);
 
     CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
-    printf(
-        "data 1 %s %.2f ms mode=%d flags=%d\n",
-        mesu_data.name,
-        mesu_data.integration_time,
-        mesu_data.processing_mode,
-        mesu_data.measurement_flags);
+    printf("data 1 %s %.2f ms mode=%d flags=%d\n", mesu_data.name, mesu_data.integration_time, mesu_data.processing_mode, mesu_data.measurement_flags);
     fflush(stdout);
 
     char exportDirREF[CUVIS_MAXBUF];
@@ -215,8 +193,7 @@ int main(int argc, char* argv[])
 
     strcpy(general_settings.export_dir, exportDirREF);
     CUVIS_EXPORTER cube_exporter;
-    CUVIS_CHECK(cuvis_exporter_create_cube(
-        &cube_exporter, general_settings, cube_settings));
+    CUVIS_CHECK(cuvis_exporter_create_cube(&cube_exporter, general_settings, cube_settings));
     CUVIS_CHECK(cuvis_exporter_apply(cube_exporter, mesu));
     cuvis_exporter_free(&cube_exporter);
   }
@@ -239,12 +216,7 @@ int main(int argc, char* argv[])
     fflush(stdout);
 
     CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
-    printf(
-        "data 1 %s %.2f ms mode=%d flags=%d\n",
-        mesu_data.name,
-        mesu_data.integration_time,
-        mesu_data.processing_mode,
-        mesu_data.measurement_flags);
+    printf("data 1 %s %.2f ms mode=%d flags=%d\n", mesu_data.name, mesu_data.integration_time, mesu_data.processing_mode, mesu_data.measurement_flags);
     fflush(stdout);
 
     char exportDirSPRAD[CUVIS_MAXBUF];
@@ -253,8 +225,7 @@ int main(int argc, char* argv[])
 
     strcpy(general_settings.export_dir, exportDirSPRAD);
     CUVIS_EXPORTER cube_exporter;
-    CUVIS_CHECK(cuvis_exporter_create_cube(
-        &cube_exporter, general_settings, cube_settings));
+    CUVIS_CHECK(cuvis_exporter_create_cube(&cube_exporter, general_settings, cube_settings));
     CUVIS_CHECK(cuvis_exporter_apply(cube_exporter, mesu));
     cuvis_exporter_free(&cube_exporter);
   }

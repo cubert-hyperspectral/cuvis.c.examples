@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
   char* const distanceString = argv[3];
   char* const exportDir = argv[4];
 
-  int distance = atoi(distanceString); //in mm
+  int distance = atoi(distanceString); // in mm
 
   printf("Example 04 change distance cpp \n");
   printf(userSettingsDir);
@@ -57,16 +57,10 @@ int main(int argc, char* argv[])
 
   printf("\nloading measurement... \n");
   fflush(stdout);
-  CUVIS_CHECK(cuvis_session_file_get_mesu(
-      sess, 0, session_item_type_frames_no_gaps, &mesu));
+  CUVIS_CHECK(cuvis_session_file_get_mesu(sess, 0, session_item_type_frames_no_gaps, &mesu));
 
   CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
-  printf(
-      "data 1 %s %.2f ms mode=%d flags=%d\n",
-      mesu_data.name,
-      mesu_data.integration_time,
-      mesu_data.processing_mode,
-      mesu_data.measurement_flags);
+  printf("data 1 %s %.2f ms mode=%d flags=%d\n", mesu_data.name, mesu_data.integration_time, mesu_data.processing_mode, mesu_data.measurement_flags);
   fflush(stdout);
 
   printf("Load calibration and processing context...");
@@ -80,7 +74,7 @@ int main(int argc, char* argv[])
   CUVIS_EXPORTER cube_exporter;
 
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-      "", //initializer list only takes const char*, leave empty and modify afterwards.
+      "", // initializer list only takes const char*, leave empty and modify afterwards.
       "all",
       1,
       0.0,
@@ -92,7 +86,7 @@ int main(int argc, char* argv[])
   strcpy(general_settings.export_dir, exportDir);
 
   CUVIS_EXPORT_CUBE_SETTINGS cube_settings;
-  cube_settings.allow_fragmentation = 0;
+  cube_settings.merge_mode = session_merge_mode_Default;
   cube_settings.allow_overwrite = 1;
   cube_settings.allow_session_file = 1;
 
@@ -100,7 +94,7 @@ int main(int argc, char* argv[])
 
   printf("Set distance ...");
   fflush(stdout);
-  //CUVIS_CHECK(cuvis_proc_cont_calc_distance(procCont, distance)); // throws error on pan image
+  // CUVIS_CHECK(cuvis_proc_cont_calc_distance(procCont, distance)); // throws error on pan image
   cuvis_proc_cont_calc_distance(procCont, distance);
   printf(" done. \n");
   fflush(stdout);
@@ -121,12 +115,7 @@ int main(int argc, char* argv[])
     fflush(stdout);
 
     CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
-    printf(
-        "data 1 %s %.2f ms mode=%d flags=%d\n",
-        mesu_data.name,
-        mesu_data.integration_time,
-        mesu_data.processing_mode,
-        mesu_data.measurement_flags);
+    printf("data 1 %s %.2f ms mode=%d flags=%d\n", mesu_data.name, mesu_data.integration_time, mesu_data.processing_mode, mesu_data.measurement_flags);
     fflush(stdout);
 
     cuvis_exporter_apply(cube_exporter, mesu);

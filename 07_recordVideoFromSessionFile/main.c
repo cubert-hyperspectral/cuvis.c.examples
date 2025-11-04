@@ -6,9 +6,9 @@
 #include <stdlib.h>
 
 #ifdef WIN32
-#include <Windows.h>
+  #include <Windows.h>
 #else
-#include <unistd.h>
+  #include <unistd.h>
 #endif
 
 int keepRunning = 1;
@@ -21,7 +21,7 @@ void signal_handler(int sig)
   keepRunning = 0;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
   if (argc != 7)
   {
@@ -37,12 +37,12 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  char *const userSettingsDir = argv[1];
-  char *const sessionfile = argv[2];
-  char *const recDir = argv[3];
-  char *const exposureString = argv[4]; // in ms
-  char *const autoExpString = argv[5];
-  char *const fpsString = argv[6];
+  char* const userSettingsDir = argv[1];
+  char* const sessionfile = argv[2];
+  char* const recDir = argv[3];
+  char* const exposureString = argv[4]; // in ms
+  char* const autoExpString = argv[5];
+  char* const fpsString = argv[6];
 
   int exposure_ms = atoi(exposureString); // in ms
   bool autoExp = false;

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
   if (argc != 5)
   {
@@ -17,10 +17,10 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  char *const userSettingsDir = argv[1];
-  char *const sessionLoc = argv[2];
-  char *const distanceString = argv[3];
-  char *const exportDir = argv[4];
+  char* const userSettingsDir = argv[1];
+  char* const sessionLoc = argv[2];
+  char* const distanceString = argv[3];
+  char* const exportDir = argv[4];
 
   int distance = atoi(distanceString); // in mm
 
@@ -57,16 +57,10 @@ int main(int argc, char *argv[])
 
   printf("\nloading measurement... \n");
   fflush(stdout);
-  CUVIS_CHECK(cuvis_session_file_get_mesu(
-      sess, 0, session_item_type_frames_no_gaps, &mesu));
+  CUVIS_CHECK(cuvis_session_file_get_mesu(sess, 0, session_item_type_frames_no_gaps, &mesu));
 
   CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
-  printf(
-      "data 1 %s %.2f ms mode=%d flags=%d\n",
-      mesu_data.name,
-      mesu_data.integration_time,
-      mesu_data.processing_mode,
-      mesu_data.measurement_flags);
+  printf("data 1 %s %.2f ms mode=%d flags=%d\n", mesu_data.name, mesu_data.integration_time, mesu_data.processing_mode, mesu_data.measurement_flags);
   fflush(stdout);
 
   printf("Load calibration and processing context...");
@@ -121,12 +115,7 @@ int main(int argc, char *argv[])
     fflush(stdout);
 
     CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
-    printf(
-        "data 1 %s %.2f ms mode=%d flags=%d\n",
-        mesu_data.name,
-        mesu_data.integration_time,
-        mesu_data.processing_mode,
-        mesu_data.measurement_flags);
+    printf("data 1 %s %.2f ms mode=%d flags=%d\n", mesu_data.name, mesu_data.integration_time, mesu_data.processing_mode, mesu_data.measurement_flags);
     fflush(stdout);
 
     cuvis_exporter_apply(cube_exporter, mesu);

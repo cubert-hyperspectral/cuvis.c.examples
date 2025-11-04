@@ -7,12 +7,12 @@
 #include <sys/stat.h>
 
 #ifdef WIN32
-#include <Windows.h>
+  #include <Windows.h>
 #else
-#include <unistd.h>
+  #include <unistd.h>
 #endif
 
-bool is_directory(const char *path)
+bool is_directory(const char* path)
 {
   struct stat s;
   if (stat(path, &s) == 0)
@@ -22,7 +22,7 @@ bool is_directory(const char *path)
   return false;
 }
 
-bool is_file(const char *path)
+bool is_file(const char* path)
 {
   struct stat s;
   if (stat(path, &s) == 0)
@@ -42,7 +42,7 @@ void signal_handler(int sig)
   keepRunning = 0;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
   if (argc != 7)
   {
@@ -58,12 +58,12 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  char *const userSettingsDir = argv[1];
-  char *const factoryDir = argv[2];
-  char *const recDir = argv[3];
-  char *const exposureString = argv[4];
-  char *const autoExpString = argv[5];
-  char *const fpsString = argv[6];
+  char* const userSettingsDir = argv[1];
+  char* const factoryDir = argv[2];
+  char* const recDir = argv[3];
+  char* const exposureString = argv[4];
+  char* const autoExpString = argv[5];
+  char* const fpsString = argv[6];
 
   int exposure_ms = atoi(exposureString); // in ms
   bool autoExp = false;
@@ -147,8 +147,7 @@ int main(int argc, char *argv[])
   cube_settings.hard_limit = 4;
   cube_settings.soft_limit = 2;
 
-  CUVIS_CHECK(cuvis_exporter_create_cube(
-      &cube_exporter, general_settings, cube_settings));
+  CUVIS_CHECK(cuvis_exporter_create_cube(&cube_exporter, general_settings, cube_settings));
 
   CUVIS_PROC_ARGS procArgs;
   procArgs.allow_recalib = 0;
@@ -224,8 +223,7 @@ int main(int argc, char *argv[])
   fflush(stdout);
 
   CUVIS_CHECK(cuvis_acq_cont_integration_time_set(acqCont, exposure_ms));
-  CUVIS_CHECK(
-      cuvis_acq_cont_operation_mode_set(acqCont, OperationMode_Internal));
+  CUVIS_CHECK(cuvis_acq_cont_operation_mode_set(acqCont, OperationMode_Internal));
   CUVIS_CHECK(cuvis_acq_cont_fps_set(acqCont, fps));
   CUVIS_CHECK(cuvis_acq_cont_queue_size_set(acqCont, 10));
   CUVIS_CHECK(cuvis_acq_cont_continuous_set(acqCont, 0));
@@ -294,8 +292,7 @@ int main(int argc, char *argv[])
     {
       CUVIS_MESU_METADATA mesu_data;
       CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
-      printf(
-          "\rcurrent handle index: %04d", mesu_data.session_info_sequence_no);
+      printf("\rcurrent handle index: %04d", mesu_data.session_info_sequence_no);
       fflush(stdout);
 
       cuvis_measurement_free(&mesu);

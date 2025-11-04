@@ -122,8 +122,7 @@ int main(int argc, char* argv[])
   strcat(exportDirView, "/view");
   strcpy(general_settings_view.export_dir, exportDirView);
 
-  CUVIS_EXPORT_CUBE_SETTINGS cube_settings_session = {
-      0, 1, 0, 1, 1, OperationMode_Software, 1.0, 64, 128, 60000};
+  CUVIS_EXPORT_CUBE_SETTINGS cube_settings_session = {0, 1, 0, 1, 1, OperationMode_Software, 1.0, 64, 128, 60000};
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings_session = {
       "", //initializer list only takes const char*, leave empty and modify afterwards.
       "all",
@@ -144,13 +143,11 @@ int main(int argc, char* argv[])
 
   printf("loading measurement ...\n");
   fflush(stdout);
-  CUVIS_CHECK(cuvis_session_file_get_mesu(
-      sess, 0, session_item_type_frames_no_gaps, &mesu));
+  CUVIS_CHECK(cuvis_session_file_get_mesu(sess, 0, session_item_type_frames_no_gaps, &mesu));
 
   printf("creating envi exporter ...\n");
   fflush(stdout);
-  CUVIS_CHECK(
-      cuvis_exporter_create_envi(&envi_exporter, general_settings_envi));
+  CUVIS_CHECK(cuvis_exporter_create_envi(&envi_exporter, general_settings_envi));
   printf(" done.\n");
   fflush(stdout);
 
@@ -159,8 +156,7 @@ int main(int argc, char* argv[])
 
   single_tiff_settings.compression_mode = tiff_compression_mode_None;
   single_tiff_settings.format = tiff_format_Single;
-  CUVIS_CHECK(cuvis_exporter_create_tiff(
-      &single_tiff_exporter, general_settings_single, single_tiff_settings));
+  CUVIS_CHECK(cuvis_exporter_create_tiff(&single_tiff_exporter, general_settings_single, single_tiff_settings));
   printf(" done.\n");
   fflush(stdout);
 
@@ -169,8 +165,7 @@ int main(int argc, char* argv[])
 
   multi_tiff_settings.compression_mode = tiff_compression_mode_None;
   multi_tiff_settings.format = tiff_format_MultiChannel;
-  CUVIS_CHECK(cuvis_exporter_create_tiff(
-      &multi_tiff_exporter, general_settings_multi, multi_tiff_settings));
+  CUVIS_CHECK(cuvis_exporter_create_tiff(&multi_tiff_exporter, general_settings_multi, multi_tiff_settings));
   printf(" done.\n");
   fflush(stdout);
 
@@ -201,15 +196,13 @@ int main(int argc, char* argv[])
   }
 
   view_settings.userplugin = buffer;
-  CUVIS_CHECK(cuvis_exporter_create_view(
-      &view_exporter, general_settings_view, view_settings));
+  CUVIS_CHECK(cuvis_exporter_create_view(&view_exporter, general_settings_view, view_settings));
   printf(" done.\n");
   fflush(stdout);
 
   printf("creating cube exporter (session) ...\n");
   fflush(stdout);
-  CUVIS_CHECK(cuvis_exporter_create_cube(
-      &cube_exporter, general_settings_session, cube_settings_session));
+  CUVIS_CHECK(cuvis_exporter_create_cube(&cube_exporter, general_settings_session, cube_settings_session));
   printf(" done.\n");
   fflush(stdout);
 

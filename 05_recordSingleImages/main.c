@@ -6,12 +6,12 @@
 #include <sys/stat.h>
 
 #ifdef WIN32
-#include <Windows.h>
+  #include <Windows.h>
 #else
-#include <unistd.h>
+  #include <unistd.h>
 #endif
 
-bool is_directory(const char *path)
+bool is_directory(const char* path)
 {
   struct stat s;
   if (stat(path, &s) == 0)
@@ -21,7 +21,7 @@ bool is_directory(const char *path)
   return false;
 }
 
-bool is_file(const char *path)
+bool is_file(const char* path)
 {
   struct stat s;
   if (stat(path, &s) == 0)
@@ -31,7 +31,7 @@ bool is_file(const char *path)
   return false;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
   if (argc != 6)
   {
@@ -44,11 +44,11 @@ int main(int argc, char *argv[])
     return -1;
   }
 
-  char *const userSettingsDir = argv[1];
-  char *const factoryDir = argv[2];
-  char *const recDir = argv[3];
-  char *const exposureString = argv[4]; // in ms
-  char *const nrImagesString = argv[5];
+  char* const userSettingsDir = argv[1];
+  char* const factoryDir = argv[2];
+  char* const recDir = argv[3];
+  char* const exposureString = argv[4]; // in ms
+  char* const nrImagesString = argv[5];
 
   int exposure_ms = atoi(exposureString);
   int nrImages = atoi(nrImagesString);

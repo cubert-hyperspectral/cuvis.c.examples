@@ -65,7 +65,8 @@ int main(int argc, char* argv[])
 
   printf("Load calibration and processing context...");
   fflush(stdout);
-  CUVIS_CHECK(cuvis_proc_cont_create_from_session_file(sess, &procCont));
+  CUVIS_INT load_references = 1;
+  CUVIS_CHECK(cuvis_proc_cont_create_from_session_file(sess, load_references, &procCont));
   printf(" done. \n");
   fflush(stdout);
 

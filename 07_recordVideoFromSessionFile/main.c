@@ -83,7 +83,8 @@ int main(int argc, char* argv[])
 
   printf("load processing context \n");
   fflush(stdout);
-  CUVIS_CHECK(cuvis_proc_cont_create_from_session_file(sessFile, &procCont));
+  CUVIS_INT load_references = 1;
+  CUVIS_CHECK(cuvis_proc_cont_create_from_session_file(sessFile, load_references, &procCont));
 
   printf("prepare saving of measurements... \n");
   fflush(stdout);

@@ -77,7 +77,8 @@ int main(int argc, char* argv[])
 
   printf("Load processing context...\n");
   fflush(stdout);
-  CUVIS_CHECK(cuvis_proc_cont_create_from_session_file(sessMesu, &procCont));
+  CUVIS_INT load_references = 1;
+  CUVIS_CHECK(cuvis_proc_cont_create_from_session_file(sessMesu, load_references, &procCont));
 
   printf("Set references ...\n");
   fflush(stdout);

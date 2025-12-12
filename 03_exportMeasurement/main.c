@@ -65,15 +65,23 @@ int main(int argc, char* argv[])
   CUVIS_CHECK(cuvis_set_log_level(loglevel_info));
 #endif
 
+  CUVIS_PANSHARPENING_SETTINGS ps_settings = {
+      "all",                                             // CUVIS_CHAR channel_selection[CUVIS_MAXBUF];
+      1.0,                                               // float spectra_multiplier;
+      0.0,                                               // double pan_scale;
+      pan_sharpening_interpolation_type_NearestNeighbor, // CUVIS_PAN_SHAPRENING_INTERPOLATION_TYPE pan_interpolation_type;
+      pan_sharpening_algorithm_Noop,                     // CUVIS_PAN_SHAPRENING_ALGORITHM_TYPE pan_algorithm;
+      0,                                                 // CUVIS_INT pre_pan_sharpen_cube;
+      0,                                                 // CUVIS_INT add_pan;
+  };
+
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings_envi = {
-      "", //initializer list only takes const char*, leave empty and modify afterwards.
-      "all",
-      1,
-      0.0,
-      pan_sharpening_interpolation_type_NearestNeighbor,
-      pan_sharpening_algorithm_Noop,
-      0,
-      0};
+      //initializer list only takes const char*, leave empty and modify afterwards.
+      "",          //CUVIS_CHAR export_dir[CUVIS_MAXBUF];
+      0,           //CUVIS_INT add_fullscale_pan;
+      0,           //CUVIS_INT permissive;
+      ps_settings, //CUVIS_PANSHARPENING_SETTINGS pansharpening_settings;
+  };
 
   char exportDirEnvi[CUVIS_MAXBUF];
   strcpy(exportDirEnvi, exportDir);
@@ -81,42 +89,36 @@ int main(int argc, char* argv[])
   strcpy(general_settings_envi.export_dir, exportDirEnvi);
 
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings_single = {
-      "", //initializer list only takes const char*, leave empty and modify afterwards.
-      "all",
-      1,
-      0.0,
-      pan_sharpening_interpolation_type_NearestNeighbor,
-      pan_sharpening_algorithm_Noop,
-      0,
-      0};
+      //initializer list only takes const char*, leave empty and modify afterwards.
+      "",          //CUVIS_CHAR export_dir[CUVIS_MAXBUF];
+      0,           //CUVIS_INT add_fullscale_pan;
+      0,           //CUVIS_INT permissive;
+      ps_settings, //CUVIS_PANSHARPENING_SETTINGS pansharpening_settings;
+  };
   char exportDirSingle[CUVIS_MAXBUF];
   strcpy(exportDirSingle, exportDir);
   strcat(exportDirSingle, "/single");
   strcpy(general_settings_single.export_dir, exportDirSingle);
 
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings_multi = {
-      "", //initializer list only takes const char*, leave empty and modify afterwards.
-      "all",
-      1,
-      0.0,
-      pan_sharpening_interpolation_type_NearestNeighbor,
-      pan_sharpening_algorithm_Noop,
-      0,
-      0};
+      //initializer list only takes const char*, leave empty and modify afterwards.
+      "",          //CUVIS_CHAR export_dir[CUVIS_MAXBUF];
+      0,           //CUVIS_INT add_fullscale_pan;
+      0,           //CUVIS_INT permissive;
+      ps_settings, //CUVIS_PANSHARPENING_SETTINGS pansharpening_settings;
+  };
   char exportDirMulti[CUVIS_MAXBUF];
   strcpy(exportDirMulti, exportDir);
   strcat(exportDirMulti, "/multi");
   strcpy(general_settings_multi.export_dir, exportDirMulti);
 
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings_view = {
-      "", //initializer list only takes const char*, leave empty and modify afterwards.
-      "all",
-      1,
-      0.0,
-      pan_sharpening_interpolation_type_NearestNeighbor,
-      pan_sharpening_algorithm_Noop,
-      0,
-      0};
+      //initializer list only takes const char*, leave empty and modify afterwards.
+      "",          //CUVIS_CHAR export_dir[CUVIS_MAXBUF];
+      0,           //CUVIS_INT add_fullscale_pan;
+      0,           //CUVIS_INT permissive;
+      ps_settings, //CUVIS_PANSHARPENING_SETTINGS pansharpening_settings;
+  };
   char exportDirView[CUVIS_MAXBUF];
   strcpy(exportDirView, exportDir);
   strcat(exportDirView, "/view");
@@ -124,14 +126,12 @@ int main(int argc, char* argv[])
 
   CUVIS_EXPORT_CUBE_SETTINGS cube_settings_session = {0, 1, 0, 1, 1, OperationMode_Software, 1.0, 64, 128, 60000};
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings_session = {
-      "", //initializer list only takes const char*, leave empty and modify afterwards.
-      "all",
-      1,
-      0.0,
-      pan_sharpening_interpolation_type_NearestNeighbor,
-      pan_sharpening_algorithm_Noop,
-      0,
-      0};
+      //initializer list only takes const char*, leave empty and modify afterwards.
+      "",          //CUVIS_CHAR export_dir[CUVIS_MAXBUF];
+      0,           //CUVIS_INT add_fullscale_pan;
+      0,           //CUVIS_INT permissive;
+      ps_settings, //CUVIS_PANSHARPENING_SETTINGS pansharpening_settings;
+  };
   char exportDirSession[CUVIS_MAXBUF];
   strcpy(exportDirSession, exportDir);
   strcat(exportDirSession, "/session");

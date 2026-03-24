@@ -23,6 +23,19 @@ void signal_handler(int sig)
 
 int main(int argc, char* argv[])
 {
+  /*
+  * Record Video From Session File
+  *
+  * In this example a video is recorded from a simulated camere.
+  * The frames from a already recorded sessionfile are used for the simulation.
+  *
+  * * Used principles:
+  *   - *SessionFile* to load a recorded measurement
+  *   - *ProcessingContext* to generate hyperspectral cubes using different processing modes
+  *
+  * Run properties
+  *   - "path/to/settings" path/to/video.cu3s" "OutputFolderName" exposureTimeInMs [0|1]autoExposure targetFPS
+  */
   if (argc != 7)
   {
     printf("To few Arguments! Please provide:\n");
@@ -68,6 +81,13 @@ int main(int argc, char* argv[])
   CUVIS_ACQ_CONT acqCont;
   CUVIS_PROC_CONT procCont;
 
+  /*
+  * Settings
+  * Initialize the Cuvis SDK using a settings - directory
+  * This is optional(all settings have defaults),
+  * but enables you to optimize Cuvis' performance on your system using the settings
+  * Your camera and the default Cuvis installation both provide these settings files
+  */
   printf("loading user settings...\n");
   fflush(stdout);
   CUVIS_CHECK(cuvis_init(userSettingsDir, loglevel_debug, NULL));

@@ -44,6 +44,29 @@ void signal_handler(int sig)
 
 int main(int argc, char* argv[])
 {
+  /*
+  * Record a Video using the Worker Class
+  *
+  * This example applies principles introduced in the previous examples to set up a comprehensive real-time hyperspectral video recording and processing pipeline.
+  * The *Worker* class is introduced, which enables efficient use of the classes needed to acquire, process and save measurements.
+  *
+  * Used principles:
+  *    - *SessionFile* to load a camera calibration
+  *    - *AcquisitionContext* to communicate with the camera and acquire measurments
+  *    - *ProcessingContext* to compute hyperspectral cubes
+  *    - *CubeExporter* to save measurements to disk
+  *    - *Userplugin* to define the visualization of the hyperspectral cube
+  *    - *Worker* to tie everything together to a managed processing pipeline
+  *
+  *
+  * Prerequisites to running this example:
+  *    - Have a camera connected *or* downloaded the provided [demo data](https://drive.google.com/drive/folders/1Cjb0v_a2p1cCmhKH8w2OuRtnhXCJGz61?usp=sharing)
+  *    - Have the camera calibration file (*SN*.cu3c) ready *or* use the [demo data](https://drive.google.com/drive/folders/1Cjb0v_a2p1cCmhKH8w2OuRtnhXCJGz61?usp=sharing)
+  *    - Have the Cuvis SDK installed
+  *
+  * Run properties:
+  *   - "path/to/settings" path/to/factory" "path/to/recording/directory" exposeTimeInMs [1/0]autoExposure targetFPS
+  */
   if (argc != 7)
   {
     printf("To few Arguments! Please provide:\n");
@@ -89,10 +112,24 @@ int main(int argc, char* argv[])
   CUVIS_ACQ_CONT acqCont;
   CUVIS_PROC_CONT procCont;
 
+  /*
+  * Settings
+  * Initialize the Cuvis SDK using a settings - directory
+  * This is optional(all settings have defaults),
+  * but enables you to optimize Cuvis' performance on your system using the settings
+  * Your camera and the default Cuvis installation both provide these settings files
+  */
   printf("loading user settings...\n");
   fflush(stdout);
   CUVIS_CHECK(cuvis_init(userSettingsDir, loglevel_debug, NULL));
 
+  /*
+  * Set up Camera
+  *   - Load calibration file
+  *   - Initialize *AcquisitionContext*
+  *   - Wait for camera to report **ready**
+  *   - Parametrize *AcquisitionContext* with recording parameters
+  */
   printf("loading calibration...\n");
   fflush(stdout);
   if (is_directory(factoryDir))

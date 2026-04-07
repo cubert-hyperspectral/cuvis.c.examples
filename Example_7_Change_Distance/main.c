@@ -124,6 +124,17 @@ int main(int argc, char* argv[])
 
   cuvis_exporter_create_cube(&cube_exporter, general_settings, cube_settings);
 
+  /*
+  * Distance Calibration
+  * Most Ultris cameras(except for Relay - variants) require distance calibration to achieve optimal results.
+  *
+  * ** Please note : **The provided default demo dataset was recorded with a relay - equipped camera(Ultris XM with relay optics).Thus this step is not applicable to this dataset.
+  *
+  * Distance calibration is an operation that can be done with already recorded data and requires a distance reference measurement.
+  * The reference should contain high - contrast data over the relevant spectral channels at the desired distance that data should be calibrated to.
+  *
+  * In this example, the measurement itself will be used as the distance reference.If the target object is suitable(high contrast, non - repeating patterns), this can suffice for good results.
+  */
   printf("Set distance ...");
   fflush(stdout);
   // CUVIS_CHECK(cuvis_proc_cont_calc_distance(procCont, distance)); // throws error on pan image

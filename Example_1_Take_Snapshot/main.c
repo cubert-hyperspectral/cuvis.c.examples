@@ -119,15 +119,15 @@ int main(int argc, char* argv[])
 
   /*
   * Processing Context
-  * The* ProcessingContext* is the interface that enables computing a hyperspectral cube from a measurement.
-  * A camera calibration file is required to initialize the* ProcessingContext*, as each Cubert camera is individually calibrated to provide the most accurate spectral information.
-  * As a SessionFile contains the camera calibration, it is used to construct the* ProcessingContext* .
+  * The *ProcessingContext* is the interface that enables computing a hyperspectral cube from a measurement.
+  * A camera calibration file is required to initialize the *ProcessingContext*, as each Cubert camera is individually calibrated to provide the most accurate spectral information.
+  * As a SessionFile contains the camera calibration, it is used to construct the *ProcessingContext* .
   *
-  * To generate a hyperspectral cube, the* ProcessingContext* is** applied** to the* Measurement* .The* Measurement* is modified** in - place * *and now contains a cube.
+  * To generate a hyperspectral cube, the *ProcessingContext* is **applied** to the *Measurement* .The *Measurement* is modified **in-place** and now contains a cube.
   *
   * To select the processing mode, write the `processing_mode` attribute.
   *
-  * When initializing a* ProcessingContext* from a* SessionFile*, the reference* Measurements* stored in the* SessionFile* are automatically loaded and set within the* ProcessingContext* .
+  * When initializing a *ProcessingContext* from a *SessionFile*, the reference *Measurements* stored in the *SessionFile* are automatically loaded and set within the *ProcessingContext* .
   * Using the method `set_reference`, different measurements can be set for each reference type.
   */
   printf("initialize processing context...\n");
@@ -135,16 +135,16 @@ int main(int argc, char* argv[])
 
   /*
   * Acquisition Context
-  * The* Acquisition Context* is your interface to control the camera and all aspects of the data acquisition.
+  * The *Acquisition Context* is your interface to control the camera and all aspects of the data acquisition.
   *
-  * Initialize it using a* SessionFile* object, then set the recording parameters and start an acquisition.
-  * As soon as the** AcquisitionContext** is created, it will try to establish a connection with the camera.
+  * Initialize it using a *SessionFile* object, then set the recording parameters and start an acquisition.
+  * As soon as the **AcquisitionContext** is created, it will try to establish a connection with the camera.
   *
   * Here, the "Software" operation mode is used to enable data acquisition using a software trigger.
   * This is also called snapshot mode.
   *
   * Please note :
-  * The* AcquisitionContext* will** only** connect to the** exact** camera of the same serial number matching the calibration file!
+  * The *AcquisitionContext* will **only** connect to the **exact** camera of the same serial number matching the calibration file!
   * All other cameras / devices are ignored.
   */
   printf("initialize acquisition context...\n");
@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
   /*
   * Capturing a Measurement with Software Trigger(Single Snapshot)
   * Using the `capture()` method, a single measurement is initiated.
-  * Taking a snapshot requires some time, so, to prevent the call to `capture()` from blocking execution, an* AsyncMesu* is returned.
+  * Taking a snapshot requires some time, so, to prevent the call to `capture()` from blocking execution, an *AsyncMesu* is returned.
   * To await the completion of the snapshot, use the `get()` method on the *AsyncMesu*.
   */
   printf("start recording now\n");

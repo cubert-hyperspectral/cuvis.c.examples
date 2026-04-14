@@ -33,6 +33,24 @@ bool is_file(const char* path)
 
 int main(int argc, char* argv[])
 {
+  /*
+  * Connect to camera and record a measurement
+  *
+  * This example provides a minimal starting point to allow you to get a camera and data acquisition running.
+  *
+  * Used principles:
+  *   - *AcquisitionContext* for camera control and data acquisition
+  *   - *SessionFile* as camera calibration file
+  *   - *CubeExporter* for saving measurements
+  *
+  * Prerequisites to running this example:
+  *   - Have a camera connected *or* downloaded the provided [demo data](https://drive.google.com/drive/folders/1Cjb0v_a2p1cCmhKH8w2OuRtnhXCJGz61?usp=sharing)
+  *   - Have the camera calibration file (*SN*.cu3c) ready *or* use the [demo data](https://drive.google.com/drive/folders/1Cjb0v_a2p1cCmhKH8w2OuRtnhXCJGz61?usp=sharing)
+  *   - Have the Cuvis SDK installed
+  *
+  * Run properties:
+  *   - "path/to/settings" path/to/factory" "path/to/recording/directory" exPoseTimeInMs numberOfImages
+  */
   if (argc != 6)
   {
     printf("To few Arguments! Please provide:\n");
@@ -67,6 +85,13 @@ int main(int argc, char* argv[])
   CUVIS_ACQ_CONT acqCont;
   CUVIS_PROC_CONT procCont;
 
+  /*
+  * Settings
+  * Initialize the Cuvis SDK using a settings - directory
+  * This is optional(all settings have defaults),
+  * but enables you to optimize Cuvis' performance on your system using the settings
+  * Your camera and the default Cuvis installation both provide these settings files
+  */
   printf("load user settings...\n");
   CUVIS_CHECK(cuvis_init(userSettingsDir, loglevel_debug, NULL));
   cuvis_set_log_level(loglevel_info);
@@ -92,9 +117,36 @@ int main(int argc, char* argv[])
     return -1;
   }
 
+  /*
+  * Processing Context
+  * The *ProcessingContext* is the interface that enables computing a hyperspectral cube from a measurement.
+  * A camera calibration file is required to initialize the *ProcessingContext*, as each Cubert camera is individually calibrated to provide the most accurate spectral information.
+  * As a SessionFile contains the camera calibration, it is used to construct the *ProcessingContext* .
+  *
+  * To generate a hyperspectral cube, the *ProcessingContext* is **applied** to the *Measurement* .The *Measurement* is modified **in-place** and now contains a cube.
+  *
+  * To select the processing mode, write the `processing_mode` attribute.
+  *
+  * When initializing a *ProcessingContext* from a *SessionFile*, the reference *Measurements* stored in the *SessionFile* are automatically loaded and set within the *ProcessingContext* .
+  * Using the method `set_reference`, different measurements can be set for each reference type.
+  */
   printf("initialize processing context...\n");
   CUVIS_CHECK(cuvis_proc_cont_create_from_calib(calib, &procCont));
 
+  /*
+  * Acquisition Context
+  * The *Acquisition Context* is your interface to control the camera and all aspects of the data acquisition.
+  *
+  * Initialize it using a *SessionFile* object, then set the recording parameters and start an acquisition.
+  * As soon as the **AcquisitionContext** is created, it will try to establish a connection with the camera.
+  *
+  * Here, the "Software" operation mode is used to enable data acquisition using a software trigger.
+  * This is also called snapshot mode.
+  *
+  * Please note :
+  * The *AcquisitionContext* will **only** connect to the **exact** camera of the same serial number matching the calibration file!
+  * All other cameras / devices are ignored.
+  */
   printf("initialize acquisition context...\n");
   CUVIS_CHECK(cuvis_acq_cont_create_from_calib(calib, &acqCont));
 
@@ -203,6 +255,12 @@ int main(int argc, char* argv[])
   CUVIS_CHECK(cuvis_worker_set_proc_cont(worker, procCont));
   CUVIS_CHECK(cuvis_worker_set_exporter(worker, cube_exporter));
 
+  /*
+  * Capturing a Measurement with Software Trigger(Single Snapshot)
+  * Using the `capture()` method, a single measurement is initiated.
+  * Taking a snapshot requires some time, so, to prevent the call to `capture()` from blocking execution, an *AsyncMesu* is returned.
+  * To await the completion of the snapshot, use the `get()` method on the *AsyncMesu*.
+  */
   printf("start recording now\n");
   CUVIS_CHECK(cuvis_worker_start(worker));
 

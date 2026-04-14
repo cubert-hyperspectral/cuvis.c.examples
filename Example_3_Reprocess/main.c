@@ -4,6 +4,25 @@
 
 int main(int argc, char* argv[])
 {
+  /*
+  * Load and reprocess a recorded measurement
+  *
+  * In this example an already recorded measurement (SessionFile .cu3s) is loaded.
+  * The measurement is reprocessed into different processing modes, explaining their differences.
+  *
+  * Used principles:
+  *   - *SessionFile* to load a recorded measurement
+  *   - *Measurement* to access the SessionFiles data and meta-data
+  *   - *ProcessingContext* to generate hyperspectral cubes using different processing modes
+  *
+  * Prerequisites to running this example:
+  *   - Have a recorded measurement in *SessionFile* format (.cu3s) *or* downloaded the provided [demo data](https://drive.google.com/drive/folders/1Cjb0v_a2p1cCmhKH8w2OuRtnhXCJGz61?usp=sharing)
+  *   - Have a recorded White and Dark reference measurement *or* use the [demo data](https://drive.google.com/drive/folders/1Cjb0v_a2p1cCmhKH8w2OuRtnhXCJGz61?usp=sharing)
+  *   - Have the Cuvis SDK installed
+  *
+  *   Run properties
+  *   - "path/to/settings" path/to/measurement/single.cu3s" "path/to/dark/file.cu3s" "path/to/white/file.cu3s" "path/to/distance/file.cu3s" "OutputFolderName"
+  */
   if (argc != 7)
   {
     printf("To few Arguments! Please provide:\n");
@@ -53,10 +72,28 @@ int main(int argc, char* argv[])
 
   CUVIS_INT is_capable;
 
+  /*
+  * **Settings**
+  * Initialize the Cuvis SDK using a settings - directory
+  * This is optional(all settings have defaults),
+  * but enables you to optimize Cuvis' performance on your system using the settings
+  * Your camera and the default Cuvis installation both provide these settings files
+  */
   printf("\nloading settings... \n");
   fflush(stdout);
   CUVIS_CHECK(cuvis_init(userSettingsDir, loglevel_debug, NULL));
 
+  /*
+  * **SessionFile**
+  * A SessionFile is a Cubert-proprietary container file format for storing measurement data from Cubert cameras.
+  * It simplifies dealing with the calibration files, reference measurement and actual measurements by merging everything into a single file.
+  *
+  * A SessionFile can contain:
+  *   - One or more *Measurements*
+  *   - Reference Measurements (Dark, White, Distance, ...) (normally one per type)
+  *   - Camera calibration file and Spectral Radiance calibration file
+  *   - Meta-data about the recording settings (frame-rate, session name, etc.)
+  */
   printf("loading sessionfiles... \n");
   fflush(stdout);
   CUVIS_CHECK(cuvis_session_file_load(measurementLoc, &sessMesu));
@@ -64,6 +101,24 @@ int main(int argc, char* argv[])
   CUVIS_CHECK(cuvis_session_file_load(whiteLoc, &sessWhite));
   CUVIS_CHECK(cuvis_session_file_load(distanceLoc, &sessDistance));
 
+  /*
+  * **Measurement**
+  * The *Measurement* class is the storage container for the actual hyperspectral data, along with more specific meta-data - things that can change from measurement to measurement (eg. integration time).
+  *
+  *  A Measurement can contain:
+  *   - Multiple image data
+  *   - A hyperspectral data cube
+  *   - "Links" to reference measurements
+  *   - Recording settings
+  *   - Meta-data about the state of the camera
+  *   - Meta-data about the software used to capture the measurement
+  *   - Meta-data about the quality of the measurement
+  *
+  * Please note:
+  * The hyperspectral cube is not always present.
+  * Processing the measurement to generate the hyperspectral cube is a compute-intensive step and is thus only done on-demand!
+  * By default, measurements are stored without the cube, but with all necessary data to generate it, to speed up saving and save on disk space (this shrinks measurements on average by about 50%)!
+  */
   printf("loading measurement... \n");
   fflush(stdout);
   CUVIS_CHECK(cuvis_session_file_get_mesu(sessMesu, 0, session_item_type_frames_no_gaps, &mesu));

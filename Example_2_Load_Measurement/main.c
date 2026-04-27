@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
   const uint16_t* cube16bit;
   //const uint16_t* info_ptr;
 
-  printf("Example 01 load measurement\n");
+  printf("Example 02 load measurement\n");
   printf("\nUser Settings Dir: ");
   printf(userSettingsDir);
   printf("\nsessionfile (.cu3s): ");

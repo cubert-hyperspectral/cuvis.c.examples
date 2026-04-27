@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
   char* const distanceLoc = argv[5];
   char* const outDir = argv[6];
 
-  printf("Example 02 reprocess measurement \n");
+  printf("Example 03 reprocess measurement \n");
   printf("user Settings Dir: ");
   printf(userSettingsDir);
   printf("\nmeasurement file (.cu3s): ");

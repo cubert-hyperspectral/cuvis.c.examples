@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
   const char* pluginLoc = argv[3];
   const char* exportDir = argv[4];
 
-  printf("Example 03 export measurement\n");
+  printf("Example 04 export measurement\n");
   printf("User Settings Dir: ");
   printf(userSettingsDir);
   printf("\nsessionfile (.cu3s): ");

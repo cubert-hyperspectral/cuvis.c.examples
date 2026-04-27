@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
   int exposure_ms = atoi(exposureString);
   int nrImages = atoi(nrImagesString);
 
-  printf("Example 05 record single image\n");
+  printf("Example 01 record single image\n");
   printf("User Settings directory: ");
   printf(userSettingsDir);
   printf("\nFactory directory: ");

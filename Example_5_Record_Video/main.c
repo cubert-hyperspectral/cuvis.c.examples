@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
   }
   double fps = atof(fpsString);
 
-  printf("Example 06 video");
+  printf("Example 05 video");
   printf("\nUser Settings Dir: ");
   printf(userSettingsDir);
   printf("\nFactory Dir: ");

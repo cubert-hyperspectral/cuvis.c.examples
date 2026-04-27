@@ -60,8 +60,8 @@ int main(int argc, char* argv[])
   *
   *
   * Prerequisites to running this example:
-  *    - Have a camera connected *or* downloaded the provided [demo data](https://drive.google.com/drive/folders/1Cjb0v_a2p1cCmhKH8w2OuRtnhXCJGz61?usp=sharing)
-  *    - Have the camera calibration file (*SN*.cu3c) ready *or* use the [demo data](https://drive.google.com/drive/folders/1Cjb0v_a2p1cCmhKH8w2OuRtnhXCJGz61?usp=sharing)
+  *    - Have a camera connected *or* downloaded the provided [demo data](https://cloud.cubert-gmbh.de/s/SDKSampleData)
+  *    - Have the camera calibration file (*SN*.cu3c) ready *or* use the [demo data](https://cloud.cubert-gmbh.de/s/SDKSampleData)
   *    - Have the Cuvis SDK installed
   *
   * Run properties:

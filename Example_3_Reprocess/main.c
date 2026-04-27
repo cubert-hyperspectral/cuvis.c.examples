@@ -16,8 +16,8 @@ int main(int argc, char* argv[])
   *   - *ProcessingContext* to generate hyperspectral cubes using different processing modes
   *
   * Prerequisites to running this example:
-  *   - Have a recorded measurement in *SessionFile* format (.cu3s) *or* downloaded the provided [demo data](https://drive.google.com/drive/folders/1Cjb0v_a2p1cCmhKH8w2OuRtnhXCJGz61?usp=sharing)
-  *   - Have a recorded White and Dark reference measurement *or* use the [demo data](https://drive.google.com/drive/folders/1Cjb0v_a2p1cCmhKH8w2OuRtnhXCJGz61?usp=sharing)
+  *   - Have a recorded measurement in *SessionFile* format (.cu3s) *or* downloaded the provided [demo data](https://cloud.cubert-gmbh.de/s/SDKSampleData)
+  *   - Have a recorded White and Dark reference measurement *or* use the [demo data](https://cloud.cubert-gmbh.de/s/SDKSampleData)
   *   - Have the Cuvis SDK installed
   *
   *   Run properties

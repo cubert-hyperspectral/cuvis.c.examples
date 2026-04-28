@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
   *   - *UserPlugins* to define how a view is computed
   *
   * Prerequisites to running this example:
-  *   - Have recorded a *SessionFile* (.cu3s) *or* downloaded the provided [demo data](https://drive.google.com/drive/folders/1Cjb0v_a2p1cCmhKH8w2OuRtnhXCJGz61?usp=sharing)
+  *   - Have recorded a *SessionFile* (.cu3s) *or* downloaded the provided [demo data](https://cloud.cubert-gmbh.de/s/SDKSampleData)
   *   - Have the Cuvis SDK installed
   *
   * Run properties
@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
   const char* pluginLoc = argv[3];
   const char* exportDir = argv[4];
 
-  printf("Example 03 export measurement\n");
+  printf("Example 04 export measurement\n");
   printf("User Settings Dir: ");
   printf(userSettingsDir);
   printf("\nsessionfile (.cu3s): ");

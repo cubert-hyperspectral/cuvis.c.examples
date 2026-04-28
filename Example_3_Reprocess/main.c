@@ -16,8 +16,8 @@ int main(int argc, char* argv[])
   *   - *ProcessingContext* to generate hyperspectral cubes using different processing modes
   *
   * Prerequisites to running this example:
-  *   - Have a recorded measurement in *SessionFile* format (.cu3s) *or* downloaded the provided [demo data](https://drive.google.com/drive/folders/1Cjb0v_a2p1cCmhKH8w2OuRtnhXCJGz61?usp=sharing)
-  *   - Have a recorded White and Dark reference measurement *or* use the [demo data](https://drive.google.com/drive/folders/1Cjb0v_a2p1cCmhKH8w2OuRtnhXCJGz61?usp=sharing)
+  *   - Have a recorded measurement in *SessionFile* format (.cu3s) *or* downloaded the provided [demo data](https://cloud.cubert-gmbh.de/s/SDKSampleData)
+  *   - Have a recorded White and Dark reference measurement *or* use the [demo data](https://cloud.cubert-gmbh.de/s/SDKSampleData)
   *   - Have the Cuvis SDK installed
   *
   *   Run properties
@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
   char* const distanceLoc = argv[5];
   char* const outDir = argv[6];
 
-  printf("Example 02 reprocess measurement \n");
+  printf("Example 03 reprocess measurement \n");
   printf("user Settings Dir: ");
   printf(userSettingsDir);
   printf("\nmeasurement file (.cu3s): ");

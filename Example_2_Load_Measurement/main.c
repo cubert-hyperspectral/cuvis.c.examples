@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
   *   - *Measurement* to access the SessionFiles data and meta-data
   *
   * Prerequisites to running this example:
-  *   - Have a recorded measurement in *SessionFile* format (.cu3s) *or* downloaded the provided [demo data](https://drive.google.com/drive/folders/1Cjb0v_a2p1cCmhKH8w2OuRtnhXCJGz61?usp=sharing)
+  *   - Have a recorded measurement in *SessionFile* format (.cu3s) *or* downloaded the provided [demo data](https://cloud.cubert-gmbh.de/s/SDKSampleData)
   *   - Have the Cuvis SDK installed
   *
   * Run properties
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
   const uint16_t* cube16bit;
   //const uint16_t* info_ptr;
 
-  printf("Example 01 load measurement\n");
+  printf("Example 02 load measurement\n");
   printf("\nUser Settings Dir: ");
   printf(userSettingsDir);
   printf("\nsessionfile (.cu3s): ");

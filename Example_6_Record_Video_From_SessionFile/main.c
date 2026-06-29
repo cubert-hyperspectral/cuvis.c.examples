@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef WIN32
   #include <Windows.h>
@@ -127,7 +128,7 @@ int main(int argc, char* argv[])
       0,
       0,
       ps_settings};
-      
+
   strcpy(general_settings.export_dir, recDir);
 
   CUVIS_EXPORT_CUBE_SETTINGS cube_settings;

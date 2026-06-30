@@ -1,6 +1,7 @@
 #include "cuvis.h"
 
 #include <stdio.h>
+#include <string.h>
 
 int main(int argc, char* argv[])
 {
@@ -147,8 +148,8 @@ int main(int argc, char* argv[])
   args.allow_recalib = 0;
   CUVIS_CHECK(cuvis_proc_cont_is_capable(procCont, mesu, args, &is_capable));
 
-  CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-      "", // initializer list only takes const char*, leave empty and modify afterwards.
+  // pan sharpening settings
+  CUVIS_PANSHARPENING_SETTINGS ps_settings = {
       "all",
       1,
       0.0,
@@ -156,6 +157,13 @@ int main(int argc, char* argv[])
       pan_sharpening_algorithm_Noop,
       0,
       0};
+
+  // Export settings: General processing of measurements
+  CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
+      "", // initializer list only takes const char*, leave empty and modify afterwards.
+      0,
+      0,
+      ps_settings};
 
   CUVIS_EXPORT_CUBE_SETTINGS cube_settings;
   cube_settings.merge_mode = session_merge_mode_Default;

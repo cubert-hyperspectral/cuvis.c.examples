@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 
 #ifdef WIN32
@@ -153,9 +154,8 @@ int main(int argc, char* argv[])
   printf("initialize measurement exporter...\n");
   CUVIS_EXPORTER cube_exporter;
 
-  // Export settings: General processing of measurements
-  CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-      "", // initializer list only takes const char*, leave empty and modify afterwards.
+  // pan sharpening settings
+  CUVIS_PANSHARPENING_SETTINGS ps_settings = {
       "all",
       1,
       0.0,
@@ -163,6 +163,15 @@ int main(int argc, char* argv[])
       pan_sharpening_algorithm_Noop,
       0,
       0};
+
+  // Export settings: General processing of measurements
+  CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
+      "", // initializer list only takes const char*, leave empty and modify afterwards.
+      0,
+      0,
+      ps_settings};
+
+
 
   strcpy(general_settings.export_dir, recDir);
 

@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int main(int argc, char* argv[])
 {
@@ -105,8 +106,8 @@ int main(int argc, char* argv[])
   fflush(stdout);
   CUVIS_EXPORTER cube_exporter;
 
-  CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-      "", // initializer list only takes const char*, leave empty and modify afterwards.
+  // pan sharpening settings
+  CUVIS_PANSHARPENING_SETTINGS ps_settings = {
       "all",
       1,
       0.0,
@@ -114,6 +115,13 @@ int main(int argc, char* argv[])
       pan_sharpening_algorithm_Noop,
       0,
       0};
+
+  // Export settings: General processing of measurements
+  CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
+      "", // initializer list only takes const char*, leave empty and modify afterwards.
+      0,
+      0,
+      ps_settings};
 
   strcpy(general_settings.export_dir, exportDir);
 

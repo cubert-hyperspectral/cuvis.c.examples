@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 
   int distance = atoi(distanceString); // in mm
 
-  printf("Example 07 change distance cpp \n");
+  printf("Example 08 change distance cpp \n");
   printf(userSettingsDir);
   printf("\nsessionfile (.cu3s): ");
   printf(sessionLoc);

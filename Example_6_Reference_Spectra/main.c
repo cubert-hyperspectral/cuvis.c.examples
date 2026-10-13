@@ -6,46 +6,7 @@
 #include <string.h>
 
 /*
-* Linearly interpolate a spectrum onto the cube's wavelengths,
-* plus one 10nm step at both ends as a margin, so the spectrum safely covers the cube's full range.
-* o_wavelengths and o_values must hold cube.channels + 2 elements.
-*/
-static void resample_to_cube(
-    CUVIS_IMBUFFER cube, const double* src_wavelengths, const double* src_values, uint32_t src_count, float* o_wavelengths, double* o_values)
-{
-  uint32_t i;
-  uint32_t j;
-  o_wavelengths[0] = (float)cube.wavelength[0] - 10.0f;
-  for (i = 0; i < cube.channels; i++)
-  {
-    o_wavelengths[i + 1] = (float)cube.wavelength[i];
-  }
-  o_wavelengths[cube.channels + 1] = (float)cube.wavelength[cube.channels - 1] + 10.0f;
-
-  for (i = 0; i < cube.channels + 2; i++)
-  {
-    const double wl = o_wavelengths[i];
-    if (wl <= src_wavelengths[0])
-    {
-      o_values[i] = src_values[0];
-      continue;
-    }
-    if (wl >= src_wavelengths[src_count - 1])
-    {
-      o_values[i] = src_values[src_count - 1];
-      continue;
-    }
-    for (j = 0; src_wavelengths[j + 1] < wl; j++)
-    {
-    }
-    o_values[i] = src_values[j] + (wl - src_wavelengths[j]) / (src_wavelengths[j + 1] - src_wavelengths[j]) * (src_values[j + 1] - src_values[j]);
-  }
-}
-
-/*
 * Process a fresh Measurement from the SessionFile with the current references and export it to out_dir/name.
-* Use a fresh Measurement for every reference configuration: processing with a reference spectrum stores it in the Measurement,
-* and in Cuvis 3.6.0 a Measurement processed again after the spectrum was removed from the ProcessingContext keeps using it.
 * Returns status_ok on success, for use with CUVIS_CHECK.
 */
 static int process_and_export(CUVIS_SESSION_FILE sess, CUVIS_PROC_CONT procCont, const char* out_dir, const char* name)
@@ -87,8 +48,8 @@ int main(int argc, char* argv[])
   * Reprocess a measurement with reference spectra
   *
   * Cuvis 3.6 adds two spectrum reference types to the processing context:
-  *   - Reference_TargetSpectrum: Reflectance of the white target (fractions, 1.0 = 100%). Default without it: 100% at every wavelength.
-  *   - Reference_WhiteSpectrum: Averaged white spectrum in raw sensor counts. Replaces the White reference measurement.
+  *   - Reference_TargetSpectrum: Reflectance of the white target (fractions, 1.0 = 100%). Default without it: 100% at every wavelength, or the white_target_reflectivity_percentage setting.
+  *   - Reference_WhiteSpectrum: Averaged white spectrum in dark-corrected sensor counts. Replaces the White reference measurement.
   *
   * The measurement is processed to reflectance with a target spectrum, then with a white spectrum.
   * Each result is exported as a SessionFile including the cube.
@@ -126,7 +87,7 @@ int main(int argc, char* argv[])
 
   CUVIS_SESSION_FILE sess;
   CUVIS_PROC_CONT procCont;
-  CUVIS_PROC_CONT rawProcCont;
+  CUVIS_PROC_CONT darkSubProcCont;
   CUVIS_MESU white;
   CUVIS_IMBUFFER white_cube;
   CUVIS_SENSOR_INFO image_info;
@@ -149,12 +110,12 @@ int main(int argc, char* argv[])
   args.allow_recalib = 0;
   CUVIS_CHECK(cuvis_proc_cont_set_args(procCont, args));
 
-  // Raw cube of the White reference measurement: source of the white spectrum below and of the cube's wavelengths
+  // Dark Subtract cube of the White reference measurement: source of the white spectrum below
   CUVIS_CHECK(cuvis_proc_cont_get_reference(procCont, &white, Reference_White));
-  CUVIS_CHECK(cuvis_proc_cont_create_from_session_file(sess, 1, &rawProcCont));
-  args.processing_mode = Cube_Raw;
-  CUVIS_CHECK(cuvis_proc_cont_set_args(rawProcCont, args));
-  CUVIS_CHECK(cuvis_proc_cont_apply(rawProcCont, white));
+  CUVIS_CHECK(cuvis_proc_cont_create_from_session_file(sess, 1, &darkSubProcCont));
+  args.processing_mode = Cube_DarkSubtract;
+  CUVIS_CHECK(cuvis_proc_cont_set_args(darkSubProcCont, args));
+  CUVIS_CHECK(cuvis_proc_cont_apply(darkSubProcCont, white));
   CUVIS_CHECK(cuvis_measurement_get_data_image(white, CUVIS_MESU_CUBE_KEY, &white_cube));
   if (white_cube.format != imbuffer_format_uint16)
   {
@@ -162,36 +123,23 @@ int main(int argc, char* argv[])
     return -1;
   }
 
-  const uint32_t count = white_cube.channels + 2;
-  float* wavelengths = malloc(count * sizeof(float));
-  double* values = malloc(count * sizeof(double));
-  float* target_values = malloc(count * sizeof(float));
-  uint16_t* white_values = malloc(count * sizeof(uint16_t));
-  double* cube_wavelengths = malloc(white_cube.channels * sizeof(double));
-  double* white_counts = calloc(white_cube.channels, sizeof(double));
-
   /*
   * **Target Spectrum**
   *   - Values are fractions (1.0 = 100%), wavelengths in nm.
   *   - The spectrum must cover the cube's entire wavelength range, otherwise processing fails.
-  *   - Resample it onto the cube's wavelengths, so the SDK uses exactly the values you expect at every channel.
-  *   - For a constant reflectivity, e.g. 95% (the constant reflectivity option of the Cuvis UI applications),
-  *     set two points spanning the cube's range: wavelengths {first - 10, last + 10}, values {0.95, 0.95}.
+  *   - The SDK interpolates linearly between the points; they do not need to match the cube's wavelengths.
+  *   - For a constant reflectivity, e.g. 95% (the constant reflectivity option of CuvisNEXT),
+  *     set two points spanning the cube's range: the cube's first and last wavelength, values {0.95, 0.95}.
+  *     For all processing, the cuvis.settings property white_target_reflectivity_percentage (default 100) sets it; a target spectrum overrides it.
   */
   // Example certificate of a white target (illustrative values): wavelength [nm] and reflectance as fraction
-  const double certificate_wavelengths[] = {300, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1100};
-  const double certificate_reflectance[] = {0.80, 0.86, 0.91, 0.94, 0.95, 0.96, 0.96, 0.96, 0.95, 0.94, 0.93};
-
-  resample_to_cube(white_cube, certificate_wavelengths, certificate_reflectance, 11, wavelengths, values);
-  for (chn = 0; chn < count; chn++)
-  {
-    target_values[chn] = (float)values[chn];
-  }
+  const float certificate_wavelengths[] = {300, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1100};
+  const float certificate_reflectance[] = {0.80f, 0.86f, 0.91f, 0.94f, 0.95f, 0.96f, 0.96f, 0.96f, 0.95f, 0.94f, 0.93f};
 
   CUVIS_TARGET_SPECTRUM target;
-  target.wavelengths = wavelengths;
-  target.values = target_values;
-  target.count = count;
+  target.wavelengths = certificate_wavelengths;
+  target.values = certificate_reflectance;
+  target.count = 11;
   CUVIS_CHECK(cuvis_proc_cont_set_reference_target_spectrum(procCont, &target));
 
   CUVIS_CHECK(process_and_export(sess, procCont, outDir, "TargetSpectrum"));
@@ -200,9 +148,12 @@ int main(int argc, char* argv[])
 
   /*
   * **White Spectrum**
-  *   - Raw sensor counts (uint16), wavelengths in nm, covering the cube's entire wavelength range.
+  *   - Dark-corrected sensor counts (uint16), e.g. averaged from a Dark Subtract cube, wavelengths in nm, covering the cube's entire wavelength range.
   *   - effective_bit_depth (1 to 16) is required: the bit depth of the sensor's pixel format, e.g. 12 for Mono12Packed.
-  *   - integration_time [ms]: record the white spectrum with the same integration time as the measurements.
+  *   - integration_time [ms]: not used by default, so record the white spectrum with the same integration time as the measurements.
+  *     With correct_ref_integration_time="true" in cuvis.settings, the reflectance is scaled by white spectrum / measurement integration time.
+  *   - Channels with 0 counts (here the first channels, 350-358 nm) give no meaningful reflectance:
+  *     setting such a spectrum logs a warning, and processing flags the cube as white-dark underflow.
   *   - White spectrum and White reference measurement are mutually exclusive: setting one clears the other.
   *
   * Limitation: A white spectrum is applied to the whole image equally and does not correct spatial effects,
@@ -211,7 +162,10 @@ int main(int argc, char* argv[])
   * some cameras allow exchanging the objective, which makes a fixed, calibrated spatial correction invalid in some cases.
   * For spatially accurate reflectance across the whole image, use a White reference measurement.
   */
-  // Average the raw counts over a 40 x 40 pixel region in the image center
+  // Average the dark-corrected counts over a 40 x 40 pixel region in the image center
+  double* white_counts = calloc(white_cube.channels, sizeof(double));
+  float* white_wavelengths = malloc(white_cube.channels * sizeof(float));
+  uint16_t* white_values = malloc(white_cube.channels * sizeof(uint16_t));
   const uint16_t* white16 = (const uint16_t*)white_cube.raw;
   for (y = white_cube.height / 2 - 20; y < white_cube.height / 2 + 20; y++)
   {
@@ -225,35 +179,28 @@ int main(int argc, char* argv[])
   }
   for (chn = 0; chn < white_cube.channels; chn++)
   {
-    cube_wavelengths[chn] = white_cube.wavelength[chn];
-  }
-  resample_to_cube(white_cube, cube_wavelengths, white_counts, white_cube.channels, wavelengths, values);
-  for (chn = 0; chn < count; chn++)
-  {
-    white_values[chn] = (uint16_t)rint(values[chn]);
+    white_wavelengths[chn] = (float)white_cube.wavelength[chn];
+    white_values[chn] = (uint16_t)rint(white_counts[chn]);
   }
 
   CUVIS_CHECK(cuvis_measurement_get_data_sensor_info(white, "IMAGE_info", &image_info));
   CUVIS_CHECK(cuvis_measurement_get_metadata(white, &white_data));
 
   CUVIS_SENSOR_SPECTRUM white_spectrum;
-  white_spectrum.wavelengths = wavelengths;
+  white_spectrum.wavelengths = white_wavelengths;
   white_spectrum.values = white_values;
-  white_spectrum.count = count;
+  white_spectrum.count = white_cube.channels;
   white_spectrum.effective_bit_depth = (uint16_t)strtol(image_info.pixel_format + strcspn(image_info.pixel_format, "0123456789"), NULL, 10);
   white_spectrum.integration_time = white_data.integration_time;
   CUVIS_CHECK(cuvis_proc_cont_set_reference_white_spectrum(procCont, &white_spectrum));
 
   CUVIS_CHECK(process_and_export(sess, procCont, outDir, "WhiteSpectrum"));
 
-  free(wavelengths);
-  free(values);
-  free(target_values);
-  free(white_values);
-  free(cube_wavelengths);
   free(white_counts);
+  free(white_wavelengths);
+  free(white_values);
   cuvis_measurement_free(&white);
-  cuvis_proc_cont_free(&rawProcCont);
+  cuvis_proc_cont_free(&darkSubProcCont);
   cuvis_proc_cont_free(&procCont);
   cuvis_session_file_free(&sess);
   cuvis_shutdown();

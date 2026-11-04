@@ -8,28 +8,44 @@
 /*
 * Process a fresh Measurement from the SessionFile with the current references and export it to out_dir/name.
 * Returns status_ok on success, for use with CUVIS_CHECK.
+*
+* The exported session file contains the spectrum. A processing context created from that session file (with load_references) has it as explicit reference,
+* and the measurement carries it as implicit reference: to process it without the spectrum, call both cuvis_proc_cont_clear_reference and cuvis_measurement_clear_implicit_reference.
 */
 static int process_and_export(CUVIS_SESSION_FILE sess, CUVIS_PROC_CONT procCont, const char* out_dir, const char* name)
 {
   CUVIS_MESU mesu;
   CUVIS_EXPORTER cube_exporter;
 
-  CUVIS_EXPORT_GENERAL_SETTINGS general_settings;
-  memset(&general_settings, 0, sizeof(general_settings));
+  CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
+      "", // CUVIS_CHAR export_dir[CUVIS_MAXBUF]: set below (initializer only takes const char*)
+      0,  // CUVIS_INT add_fullscale_pan
+      0,  // CUVIS_INT permissive: skip errors where possible
+      {
+          "all",                                             // CUVIS_CHAR channel_selection[CUVIS_MAXBUF]
+          1,                                                 // float spectra_multiplier
+          0.0,                                               // double pan_scale
+          pan_sharpening_interpolation_type_NearestNeighbor, // CUVIS_PAN_SHAPRENING_INTERPOLATION_TYPE pan_interpolation_type
+          pan_sharpening_algorithm_Noop,                     // CUVIS_PAN_SHAPRENING_ALGORITHM_TYPE pan_algorithm
+          0,                                                 // CUVIS_INT pre_pan_sharpen_cube
+          0,                                                 // CUVIS_INT add_pan
+      }, // CUVIS_PANSHARPENING_SETTINGS pansharpening_settings
+  };
   snprintf(general_settings.export_dir, CUVIS_MAXBUF, "%s/%s", out_dir, name);
-  strcpy(general_settings.pansharpening_settings.channel_selection, "all");
-  general_settings.pansharpening_settings.spectra_multiplier = 1;
 
-  CUVIS_EXPORT_CUBE_SETTINGS cube_settings;
-  memset(&cube_settings, 0, sizeof(cube_settings));
-  cube_settings.merge_mode = session_merge_mode_Default;
-  cube_settings.allow_overwrite = 1;
-  cube_settings.allow_session_file = 1;
-  cube_settings.operation_mode = OperationMode_Software;
-  cube_settings.soft_limit = 20;
-  cube_settings.hard_limit = 100;
-  cube_settings.max_buftime = 10000;
-  cube_settings.full_export = 1; // include the reflectance cube in the export
+  CUVIS_EXPORT_CUBE_SETTINGS cube_settings = {
+      session_merge_mode_Default, // CUVIS_SESSION_MERGE_MODE merge_mode
+      1,                          // CUVIS_INT allow_overwrite
+      0,                          // CUVIS_INT allow_drop: drop frames when the writer cannot keep up
+      1,                          // CUVIS_INT allow_session_file: write a .cu3s file
+      0,                          // CUVIS_INT allow_info_file: write a frame list next to it
+      OperationMode_Software,     // CUVIS_OPERATION_MODE operation_mode
+      0.0,                        // double fps: only for OperationMode_Internal
+      20,                         // CUVIS_INT soft_limit: buffer size for reordering frames
+      100,                        // CUVIS_INT hard_limit: max buffered frames
+      10000,                      // CUVIS_INT max_buftime: max time a frame is buffered [ms]
+      1,                          // CUVIS_INT full_export: include the reflectance cube in the export
+  };
 
   printf("processing to reflectance with %s\n", name);
   fflush(stdout);
@@ -61,7 +77,7 @@ int main(int argc, char* argv[])
   *
   * Prerequisites to running this example:
   *   - Have a recorded measurement in *SessionFile* format (.cu3s) that contains Dark and White references *or* downloaded the provided [demo data](https://cloud.cubert-gmbh.de/s/SDKSampleData)
-  *   - Have the Cuvis SDK 3.6 or newer installed
+  *   - Have the Cuvis SDK 3.6.1 or newer installed
   *
   *   Run properties
   *   - "path/to/settings" "path/to/measurement/single.cu3s" "OutputFolderName"
@@ -89,9 +105,9 @@ int main(int argc, char* argv[])
   CUVIS_PROC_CONT procCont;
   CUVIS_PROC_CONT darkSubProcCont;
   CUVIS_MESU white;
-  CUVIS_IMBUFFER white_cube;
-  CUVIS_SENSOR_INFO image_info;
-  CUVIS_MESU_METADATA white_data;
+  CUVIS_IMBUFFER white_cube = {0};
+  CUVIS_SENSOR_INFO image_info = {0};
+  CUVIS_MESU_METADATA white_data = {0};
   uint32_t x;
   uint32_t y;
   uint32_t chn;
@@ -105,9 +121,10 @@ int main(int argc, char* argv[])
   fflush(stdout);
   CUVIS_CHECK(cuvis_session_file_load(measurementLoc, &sess));
   CUVIS_CHECK(cuvis_proc_cont_create_from_session_file(sess, 1, &procCont));
-  CUVIS_PROC_ARGS args;
-  args.processing_mode = Cube_Reflectance;
-  args.allow_recalib = 0;
+  CUVIS_PROC_ARGS args = {
+      Cube_Reflectance, // CUVIS_PROCESSING_MODE processing_mode
+      0,                // CUVIS_INT allow_recalib
+  };
   CUVIS_CHECK(cuvis_proc_cont_set_args(procCont, args));
 
   // Dark Subtract cube of the White reference measurement: source of the white spectrum below
@@ -136,10 +153,11 @@ int main(int argc, char* argv[])
   const float certificate_wavelengths[] = {300, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1100};
   const float certificate_reflectance[] = {0.80f, 0.86f, 0.91f, 0.94f, 0.95f, 0.96f, 0.96f, 0.96f, 0.95f, 0.94f, 0.93f};
 
-  CUVIS_TARGET_SPECTRUM target;
-  target.wavelengths = certificate_wavelengths;
-  target.values = certificate_reflectance;
-  target.count = 11;
+  CUVIS_TARGET_SPECTRUM target = {
+      certificate_wavelengths, // float const* wavelengths
+      certificate_reflectance, // float const* values
+      11,                      // uint32_t count
+  };
   CUVIS_CHECK(cuvis_proc_cont_set_reference_target_spectrum(procCont, &target));
 
   CUVIS_CHECK(process_and_export(sess, procCont, outDir, "TargetSpectrum"));
@@ -151,7 +169,7 @@ int main(int argc, char* argv[])
   *   - Dark-corrected sensor counts (uint16), e.g. averaged from a Dark Subtract cube, wavelengths in nm, covering the cube's entire wavelength range.
   *   - effective_bit_depth (1 to 16) is required: the bit depth of the sensor's pixel format, e.g. 12 for Mono12Packed.
   *   - integration_time [ms]: not used by default, so record the white spectrum with the same integration time as the measurements.
-  *     With correct_ref_integration_time="true" in cuvis.settings, the reflectance is scaled by white spectrum / measurement integration time.
+  *     With correct_ref_integration_time="true" in cuvis.settings, the reflectance is scaled by white spectrum integration time / measurement integration time.
   *   - Channels with 0 counts (here the first channels, 350-358 nm) give no meaningful reflectance:
   *     setting such a spectrum logs a warning, and processing flags the cube as white-dark underflow.
   *   - White spectrum and White reference measurement are mutually exclusive: setting one clears the other.
@@ -186,12 +204,13 @@ int main(int argc, char* argv[])
   CUVIS_CHECK(cuvis_measurement_get_data_sensor_info(white, "IMAGE_info", &image_info));
   CUVIS_CHECK(cuvis_measurement_get_metadata(white, &white_data));
 
-  CUVIS_SENSOR_SPECTRUM white_spectrum;
-  white_spectrum.wavelengths = white_wavelengths;
-  white_spectrum.values = white_values;
-  white_spectrum.count = white_cube.channels;
-  white_spectrum.effective_bit_depth = (uint16_t)strtol(image_info.pixel_format + strcspn(image_info.pixel_format, "0123456789"), NULL, 10);
-  white_spectrum.integration_time = white_data.integration_time;
+  CUVIS_SENSOR_SPECTRUM white_spectrum = {
+      white_wavelengths,           // float const* wavelengths
+      white_values,                // uint16_t const* values
+      white_cube.channels,         // uint32_t count
+      (uint16_t)strtol(image_info.pixel_format + strcspn(image_info.pixel_format, "0123456789"), NULL, 10), // uint16_t effective_bit_depth: from the pixel format
+      white_data.integration_time, // double integration_time [ms]
+  };
   CUVIS_CHECK(cuvis_proc_cont_set_reference_white_spectrum(procCont, &white_spectrum));
 
   CUVIS_CHECK(process_and_export(sess, procCont, outDir, "WhiteSpectrum"));

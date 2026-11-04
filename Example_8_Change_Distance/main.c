@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 
   int distance = atoi(distanceString); // in mm
 
-  printf("Example 08 change distance cpp \n");
+  printf("Example 08 change distance \n");
   printf(userSettingsDir);
   printf("\nsessionfile (.cu3s): ");
   printf(sessionLoc);
@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
   CUVIS_SESSION_FILE sess;
 
   CUVIS_MESU mesu;
-  CUVIS_MESU_METADATA mesu_data;
+  CUVIS_MESU_METADATA mesu_data = {0};
 
   CUVIS_PROC_CONT procCont;
 
@@ -108,27 +108,38 @@ int main(int argc, char* argv[])
 
   // pan sharpening settings
   CUVIS_PANSHARPENING_SETTINGS ps_settings = {
-      "all",
-      1,
-      0.0,
-      pan_sharpening_interpolation_type_NearestNeighbor,
-      pan_sharpening_algorithm_Noop,
-      0,
-      0};
+      "all",                                             // CUVIS_CHAR channel_selection[CUVIS_MAXBUF]
+      1,                                                 // float spectra_multiplier
+      0.0,                                               // double pan_scale
+      pan_sharpening_interpolation_type_NearestNeighbor, // CUVIS_PAN_SHAPRENING_INTERPOLATION_TYPE pan_interpolation_type
+      pan_sharpening_algorithm_Noop,                     // CUVIS_PAN_SHAPRENING_ALGORITHM_TYPE pan_algorithm
+      0,                                                 // CUVIS_INT pre_pan_sharpen_cube
+      0,                                                 // CUVIS_INT add_pan
+  };
 
   // Export settings: General processing of measurements
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-      "", // initializer list only takes const char*, leave empty and modify afterwards.
-      0,
-      0,
-      ps_settings};
+      "",          // CUVIS_CHAR export_dir[CUVIS_MAXBUF]: set below (initializer only takes const char*)
+      0,           // CUVIS_INT add_fullscale_pan
+      0,           // CUVIS_INT permissive: skip errors where possible
+      ps_settings, // CUVIS_PANSHARPENING_SETTINGS pansharpening_settings
+  };
 
   strcpy(general_settings.export_dir, exportDir);
 
-  CUVIS_EXPORT_CUBE_SETTINGS cube_settings;
-  cube_settings.merge_mode = session_merge_mode_Default;
-  cube_settings.allow_overwrite = 1;
-  cube_settings.allow_session_file = 1;
+  CUVIS_EXPORT_CUBE_SETTINGS cube_settings = {
+      session_merge_mode_Default, // CUVIS_SESSION_MERGE_MODE merge_mode
+      1,                          // CUVIS_INT allow_overwrite
+      0,                          // CUVIS_INT allow_drop: drop frames when the writer cannot keep up
+      1,                          // CUVIS_INT allow_session_file: write a .cu3s file
+      1,                          // CUVIS_INT allow_info_file: write a frame list next to it
+      OperationMode_Software,     // CUVIS_OPERATION_MODE operation_mode
+      0.0,                        // double fps: only for OperationMode_Internal
+      20,                         // CUVIS_INT soft_limit: buffer size for reordering frames
+      100,                        // CUVIS_INT hard_limit: max buffered frames
+      10000,                      // CUVIS_INT max_buftime: max time a frame is buffered [ms]
+      0,                          // CUVIS_INT full_export: include the cube
+  };
 
   cuvis_exporter_create_cube(&cube_exporter, general_settings, cube_settings);
 
@@ -150,8 +161,10 @@ int main(int argc, char* argv[])
   printf(" done. \n");
   fflush(stdout);
 
-  CUVIS_PROC_ARGS args;
-  args.processing_mode = Cube_Raw;
+  CUVIS_PROC_ARGS args = {
+      Cube_Raw, // CUVIS_PROCESSING_MODE processing_mode
+      0,        // CUVIS_INT allow_recalib
+  };
 
   CUVIS_CHECK(cuvis_proc_cont_is_capable(procCont, mesu, args, &is_capable));
 

@@ -97,15 +97,15 @@ int main(int argc, char* argv[])
   printf("loading measurement...\n");
   CUVIS_CHECK(cuvis_session_file_get_mesu(sess, 0, session_item_type_frames_no_gaps, &mesu1));
 
-  CUVIS_MESU_METADATA mesu_data;
+  CUVIS_MESU_METADATA mesu_data = {0};
   CUVIS_CHECK(cuvis_measurement_get_metadata(mesu1, &mesu_data));
   printf("data 1 %s %.2f ms mode=%d flags=%d\n", mesu_data.name, mesu_data.integration_time, mesu_data.processing_mode, mesu_data.measurement_flags);
 
   assert(mesu_data.processing_mode == Cube_Raw && "This example requires raw mode");
 
-  CUVIS_IMBUFFER cube;
+  CUVIS_IMBUFFER cube = {0};
   CUVIS_CHECK(cuvis_measurement_get_data_image(mesu1, CUVIS_MESU_CUBE_KEY, &cube));
-  CUVIS_IMBUFFER iminfo;
+  CUVIS_IMBUFFER iminfo = {0};
   cuvis_measurement_get_data_image(mesu1, CUVIS_MESU_CUBE_INFO_KEY, &iminfo);
 
   CUVIS_CHECK(cuvis_measurement_get_metadata(mesu1, &mesu_data));
@@ -127,13 +127,14 @@ int main(int argc, char* argv[])
     printf("-- has GOOD reference --\n");
   }
 
-  printf("INFO cube No of channels: %d\n", iminfo.channels);
-  printf("INFO cube width: %d\n", iminfo.width);
-  printf("INFO cube height: %d\n", iminfo.height);
+  printf("INFO layer width: %d\n", iminfo.width);
+  printf("INFO layer height: %d\n", iminfo.height);
+  printf("INFO layer No of channels: %d\n", iminfo.channels);
+  printf("INFO layer type: %d\n", iminfo.format);
+  printf("INFO layer bytes: %d\n", iminfo.bytes);
   printf("DATA cube width: %d\n", cube.width);
   printf("DATA cube height: %d\n", cube.height);
-  printf("INFO cube type: %d\n", iminfo.format);
-  printf("INFO cube bytes: %d\n", iminfo.bytes);
+  printf("DATA cube No of channels: %d\n", cube.channels);
   printf("DATA cube type: %d\n", cube.format);
   printf("DATA cube bytes: %d\n", cube.bytes);
 

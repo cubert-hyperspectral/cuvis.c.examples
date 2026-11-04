@@ -15,7 +15,7 @@
 
 bool is_directory(const char* path)
 {
-  struct stat s;
+  struct stat s = {0};
   if (stat(path, &s) == 0)
   {
     return (s.st_mode & S_IFDIR) != 0;
@@ -25,7 +25,7 @@ bool is_directory(const char* path)
 
 bool is_file(const char* path)
 {
-  struct stat s;
+  struct stat s = {0};
   if (stat(path, &s) == 0)
   {
     return (s.st_mode & S_IFREG) != 0;
@@ -166,40 +166,51 @@ int main(int argc, char* argv[])
 
   // pan sharpening settings
   CUVIS_PANSHARPENING_SETTINGS ps_settings = {
-      "all",
-      1,
-      0.0,
-      pan_sharpening_interpolation_type_NearestNeighbor,
-      pan_sharpening_algorithm_Noop,
-      0,
-      0};
+      "all",                                             // CUVIS_CHAR channel_selection[CUVIS_MAXBUF]
+      1,                                                 // float spectra_multiplier
+      0.0,                                               // double pan_scale
+      pan_sharpening_interpolation_type_NearestNeighbor, // CUVIS_PAN_SHAPRENING_INTERPOLATION_TYPE pan_interpolation_type
+      pan_sharpening_algorithm_Noop,                     // CUVIS_PAN_SHAPRENING_ALGORITHM_TYPE pan_algorithm
+      0,                                                 // CUVIS_INT pre_pan_sharpen_cube
+      0,                                                 // CUVIS_INT add_pan
+  };
 
   // Export settings: General processing of measurements
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-      "", // initializer list only takes const char*, leave empty and modify afterwards.
-      0,
-      0,
-      ps_settings};
+      "",          // CUVIS_CHAR export_dir[CUVIS_MAXBUF]: set below (initializer only takes const char*)
+      0,           // CUVIS_INT add_fullscale_pan
+      0,           // CUVIS_INT permissive: skip errors where possible
+      ps_settings, // CUVIS_PANSHARPENING_SETTINGS pansharpening_settings
+  };
       
   strcpy(general_settings.export_dir, recDir);
 
-  CUVIS_EXPORT_CUBE_SETTINGS cube_settings;
-  cube_settings.merge_mode = session_merge_mode_Default;
-  cube_settings.allow_overwrite = 1;
-  cube_settings.allow_session_file = 1;
-  cube_settings.fps = fps;
-  cube_settings.operation_mode = OperationMode_Internal;
-  cube_settings.allow_info_file = 1;
-  cube_settings.hard_limit = 4;
-  cube_settings.soft_limit = 2;
+  CUVIS_EXPORT_CUBE_SETTINGS cube_settings = {
+      session_merge_mode_Default, // CUVIS_SESSION_MERGE_MODE merge_mode
+      1,                          // CUVIS_INT allow_overwrite
+      0,                          // CUVIS_INT allow_drop: drop frames when the writer cannot keep up
+      1,                          // CUVIS_INT allow_session_file: write a .cu3s file
+      1,                          // CUVIS_INT allow_info_file: write a frame list next to it
+      OperationMode_Internal,     // CUVIS_OPERATION_MODE operation_mode
+      fps,                        // double fps: only for OperationMode_Internal
+      2,                          // CUVIS_INT soft_limit: buffer size for reordering frames
+      4,                          // CUVIS_INT hard_limit: max buffered frames
+      10000,                      // CUVIS_INT max_buftime: max time a frame is buffered [ms]
+      0,                          // CUVIS_INT full_export: include the cube
+  };
 
   CUVIS_CHECK(cuvis_exporter_create_cube(&cube_exporter, general_settings, cube_settings));
 
-  CUVIS_PROC_ARGS procArgs;
-  procArgs.allow_recalib = 0;
-  procArgs.processing_mode = Cube_Raw;
+  CUVIS_PROC_ARGS procArgs = {
+      Cube_Raw, // CUVIS_PROCESSING_MODE processing_mode
+      0,        // CUVIS_INT allow_recalib
+  };
 
-  CUVIS_SESSION_INFO sess = {"video", 0, 0};
+  CUVIS_SESSION_INFO sess = {
+      "video", // CUVIS_CHAR name[CUVIS_MAXBUF]
+      0,       // CUVIS_INT session_no
+      0,       // CUVIS_INT sequence_no
+  };
   CUVIS_CHECK(cuvis_acq_cont_set_session_info(acqCont, &sess));
 
   printf("waiting for camera to become online...\n");
@@ -207,7 +218,7 @@ int main(int argc, char* argv[])
 
   for (;;)
   {
-    CUVIS_HARDWARE_STATE state;
+    CUVIS_HARDWARE_STATE state = hardware_state_offline;
     CUVIS_CHECK(cuvis_acq_cont_get_state(acqCont, &state));
 
     if (state == hardware_state_online)
@@ -242,7 +253,7 @@ int main(int argc, char* argv[])
   for (int compIdx = 0; compIdx < compCount; compIdx++)
   {
     CUVIS_INT online;
-    CUVIS_COMPONENT_INFO cinfo;
+    CUVIS_COMPONENT_INFO cinfo = {0};
 
     CUVIS_CHECK(cuvis_acq_cont_get_component_info(acqCont, compIdx, &cinfo));
     CUVIS_CHECK(cuvis_comp_online_get(acqCont, compIdx, &online));
@@ -276,14 +287,15 @@ int main(int argc, char* argv[])
   CUVIS_CHECK(cuvis_proc_cont_set_args(procCont, procArgs));
 
   CUVIS_WORKER worker;
-  CUVIS_WORKER_SETTINGS worker_settings;
-  worker_settings.can_skip_measurements = 0;        // Worker cannot skip exporting measurements
-  worker_settings.can_skip_supplementary_steps = 1; // Worker can skip view generation
-  worker_settings.can_drop_results = 1;             // Worker can drop results from the output queue, if it is full
-  worker_settings.input_queue_size = 10;
-  worker_settings.output_queue_size = 5;
-  worker_settings.mandatory_queue_size = 2;
-  worker_settings.supplementary_queue_size = 2;
+  CUVIS_WORKER_SETTINGS worker_settings = {
+      10, // CUVIS_SIZE input_queue_size
+      2,  // CUVIS_SIZE mandatory_queue_size
+      2,  // CUVIS_SIZE supplementary_queue_size
+      5,  // CUVIS_SIZE output_queue_size
+      0,  // CUVIS_INT can_skip_measurements: skip measurements when the processing queue is full
+      1,  // CUVIS_INT can_skip_supplementary_steps: may skip view generation
+      1,  // CUVIS_INT can_drop_results: may drop results if the output queue is full
+  };
   cuvis_worker_create(&worker, worker_settings);
 
   cuvis_worker_set_acq_cont(worker, acqCont);
@@ -336,7 +348,7 @@ int main(int argc, char* argv[])
 
     if (mesu)
     {
-      CUVIS_MESU_METADATA mesu_data;
+      CUVIS_MESU_METADATA mesu_data = {0};
       CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
       printf("\rcurrent handle index: %04d", mesu_data.session_info_sequence_no);
       fflush(stdout);

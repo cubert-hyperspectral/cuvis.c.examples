@@ -101,6 +101,21 @@ int main(int argc, char* argv[])
   CUVIS_CHECK(cuvis_measurement_get_metadata(mesu1, &mesu_data));
   printf("data 1 %s %.2f ms mode=%d flags=%d\n", mesu_data.name, mesu_data.integration_time, mesu_data.processing_mode, mesu_data.measurement_flags);
 
+  // SessionFiles are saved without the cube by default (Preview mode): compute it now (ProcessingContext, see Example 3)
+  if (mesu_data.processing_mode == Preview)
+  {
+    CUVIS_PROC_CONT procCont;
+    CUVIS_CHECK(cuvis_proc_cont_create_from_session_file(sess, 0, &procCont)); // no references needed for Cube_Raw
+    CUVIS_PROC_ARGS args = {
+        Cube_Raw, // CUVIS_PROCESSING_MODE processing_mode
+        0,        // CUVIS_INT allow_recalib
+    };
+    CUVIS_CHECK(cuvis_proc_cont_set_args(procCont, args));
+    CUVIS_CHECK(cuvis_proc_cont_apply(procCont, mesu1));
+    cuvis_proc_cont_free(&procCont);
+    CUVIS_CHECK(cuvis_measurement_get_metadata(mesu1, &mesu_data));
+  }
+
   assert(mesu_data.processing_mode == Cube_Raw && "This example requires raw mode");
 
   CUVIS_IMBUFFER cube = {0};

@@ -123,9 +123,20 @@ int main(int argc, char* argv[])
   printf("loading measurement... \n");
   fflush(stdout);
   CUVIS_CHECK(cuvis_session_file_get_mesu(sessMesu, 0, session_item_type_frames_no_gaps, &mesu));
-  CUVIS_CHECK(cuvis_session_file_get_mesu(sessDark, 0, session_item_type_frames_no_gaps, &dark));
-  CUVIS_CHECK(cuvis_session_file_get_mesu(sessWhite, 0, session_item_type_frames_no_gaps, &white));
-  CUVIS_CHECK(cuvis_session_file_get_mesu(sessDistance, 0, session_item_type_frames_no_gaps, &distance));
+  // use the reference stored in the file (e.g. the demo data), otherwise its first measurement
+  if (cuvis_session_file_get_reference_mesu(sessDark, 0, Reference_Dark, &dark) != status_ok)
+  {
+    CUVIS_CHECK(cuvis_session_file_get_mesu(sessDark, 0, session_item_type_frames_no_gaps, &dark));
+  }
+  if (cuvis_session_file_get_reference_mesu(sessWhite, 0, Reference_White, &white) != status_ok)
+  {
+    CUVIS_CHECK(cuvis_session_file_get_mesu(sessWhite, 0, session_item_type_frames_no_gaps, &white));
+  }
+  // Distance: not supported for R (relay optics, e.g. Ultris XMR) and P (pan sensor, e.g. Ultris X20P) models
+  if (cuvis_session_file_get_reference_mesu(sessDistance, 0, Reference_Distance, &distance) != status_ok)
+  {
+    CUVIS_CHECK(cuvis_session_file_get_mesu(sessDistance, 0, session_item_type_frames_no_gaps, &distance));
+  }
 
   CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
   printf("data 1 %s %.2f ms mode=%d flags=%d\n", mesu_data.name, mesu_data.integration_time, mesu_data.processing_mode, mesu_data.measurement_flags);

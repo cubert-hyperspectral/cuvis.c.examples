@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
   {
     CUVIS_CHECK(cuvis_session_file_get_mesu(sessWhite, 0, session_item_type_frames_no_gaps, &white));
   }
-  // Distance: not supported for R (relay optics, e.g. Ultris XMR) and P (pan sensor, e.g. Ultris X20P) models
+  // Distance: not supported for R models (relay optics, e.g. Ultris XMR), P models only support a distance reference
   if (cuvis_session_file_get_reference_mesu(sessDistance, 0, Reference_Distance, &distance) != status_ok)
   {
     CUVIS_CHECK(cuvis_session_file_get_mesu(sessDistance, 0, session_item_type_frames_no_gaps, &distance));

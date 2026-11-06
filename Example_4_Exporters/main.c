@@ -211,7 +211,10 @@ int main(int argc, char* argv[])
   if (mesu_data.processing_mode == Preview)
   {
     CUVIS_PROC_CONT procCont;
-    CUVIS_CHECK(cuvis_proc_cont_create_from_session_file(sess, 0, &procCont)); // no references needed for Cube_Raw
+    CUVIS_CHECK(cuvis_proc_cont_create_from_session_file(sess, 0, &procCont)); // Cube_Raw needs no Dark or White reference
+    // distance calibration (see Example 3) with the measurement itself, as the demo file has no distance reference
+    // no CUVIS_CHECK: R models (relay optics) do not support distance calibration
+    cuvis_proc_cont_set_reference(procCont, mesu, Reference_Distance);
     CUVIS_PROC_ARGS args = {
         Cube_Raw, // CUVIS_PROCESSING_MODE processing_mode
         0,        // CUVIS_INT allow_recalib

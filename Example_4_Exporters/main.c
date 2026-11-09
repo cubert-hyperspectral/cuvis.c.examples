@@ -27,13 +27,14 @@ int main(int argc, char* argv[])
   *   - Have the Cuvis SDK installed
   *
   * Run properties
-  *   - "path/to/settings" path/to/measurement/single.cu3s" "path/to/user/plugin/file.xml" "OutputFolderName"
+  *   - "path/to/settings" "path/to/measurement/file.cu3s" measurementIndex "path/to/user/plugin/file.xml" "OutputFolderName"
   */
-  if (argc != 5)
+  if (argc != 6)
   {
     printf("To few Arguments! Please provide:\n");
     printf("user settings directory\n");
     printf("sessionfile (.cu3s)\n");
+    printf("measurement index\n");
     printf("user plugin file (.xml)\n");
     printf("Name of export directory\n");
     fflush(stdout);
@@ -42,14 +43,16 @@ int main(int argc, char* argv[])
   }
   const char* userSettingsDir = argv[1];
   const char* sessionLoc = argv[2];
-  const char* pluginLoc = argv[3];
-  const char* exportDir = argv[4];
+  const int mesuIndex = atoi(argv[3]);
+  const char* pluginLoc = argv[4];
+  const char* exportDir = argv[5];
 
   printf("Example 04 export measurement\n");
   printf("User Settings Dir: ");
   printf(userSettingsDir);
   printf("\nsessionfile (.cu3s): ");
   printf(sessionLoc);
+  printf("\nmeasurement index: %d", mesuIndex);
   printf("\nuser plugin file (.xml): ");
   printf(pluginLoc);
   printf("\nExport Dir: ");
@@ -62,13 +65,10 @@ int main(int argc, char* argv[])
   CUVIS_EXPORTER envi_exporter;
   CUVIS_EXPORTER single_tiff_exporter;
 
-  CUVIS_EXPORT_TIFF_SETTINGS single_tiff_settings;
-
   CUVIS_EXPORTER multi_tiff_exporter;
-  CUVIS_EXPORT_TIFF_SETTINGS multi_tiff_settings;
 
   CUVIS_EXPORTER view_exporter;
-  CUVIS_EXPORT_VIEW_SETTINGS view_settings;
+  CUVIS_EXPORTER pansharpen_exporter;
 
   CUVIS_EXPORTER cube_exporter;
 
@@ -87,21 +87,21 @@ int main(int argc, char* argv[])
 #endif
 
   CUVIS_PANSHARPENING_SETTINGS ps_settings = {
-      "all",                                             // CUVIS_CHAR channel_selection[CUVIS_MAXBUF];
-      1.0,                                               // float spectra_multiplier;
-      0.0,                                               // double pan_scale;
-      pan_sharpening_interpolation_type_NearestNeighbor, // CUVIS_PAN_SHAPRENING_INTERPOLATION_TYPE pan_interpolation_type;
-      pan_sharpening_algorithm_Noop,                     // CUVIS_PAN_SHAPRENING_ALGORITHM_TYPE pan_algorithm;
-      0,                                                 // CUVIS_INT pre_pan_sharpen_cube;
-      0,                                                 // CUVIS_INT add_pan;
+      "all",                                             // CUVIS_CHAR channel_selection[CUVIS_MAXBUF]
+      1.0,                                               // float spectra_multiplier
+      0.0,                                               // double pan_scale
+      pan_sharpening_interpolation_type_NearestNeighbor, // CUVIS_PAN_SHAPRENING_INTERPOLATION_TYPE pan_interpolation_type
+      pan_sharpening_algorithm_Noop,                     // CUVIS_PAN_SHAPRENING_ALGORITHM_TYPE pan_algorithm
+      0,                                                 // CUVIS_INT pre_pan_sharpen_cube
+      0,                                                 // CUVIS_INT add_pan
   };
 
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings_envi = {
       //initializer list only takes const char*, leave empty and modify afterwards.
-      "",          //CUVIS_CHAR export_dir[CUVIS_MAXBUF];
-      0,           //CUVIS_INT add_fullscale_pan;
-      0,           //CUVIS_INT permissive;
-      ps_settings, //CUVIS_PANSHARPENING_SETTINGS pansharpening_settings;
+      "",          // CUVIS_CHAR export_dir[CUVIS_MAXBUF]: set below
+      0,           // CUVIS_INT add_fullscale_pan
+      0,           // CUVIS_INT permissive: skip errors where possible
+      ps_settings, // CUVIS_PANSHARPENING_SETTINGS pansharpening_settings
   };
 
   /*
@@ -117,10 +117,10 @@ int main(int argc, char* argv[])
 
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings_single = {
       //initializer list only takes const char*, leave empty and modify afterwards.
-      "",          //CUVIS_CHAR export_dir[CUVIS_MAXBUF];
-      0,           //CUVIS_INT add_fullscale_pan;
-      0,           //CUVIS_INT permissive;
-      ps_settings, //CUVIS_PANSHARPENING_SETTINGS pansharpening_settings;
+      "",          // CUVIS_CHAR export_dir[CUVIS_MAXBUF]: set below
+      0,           // CUVIS_INT add_fullscale_pan
+      0,           // CUVIS_INT permissive: skip errors where possible
+      ps_settings, // CUVIS_PANSHARPENING_SETTINGS pansharpening_settings
   };
   char exportDirSingle[CUVIS_MAXBUF];
   strcpy(exportDirSingle, exportDir);
@@ -129,10 +129,10 @@ int main(int argc, char* argv[])
 
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings_multi = {
       //initializer list only takes const char*, leave empty and modify afterwards.
-      "",          //CUVIS_CHAR export_dir[CUVIS_MAXBUF];
-      0,           //CUVIS_INT add_fullscale_pan;
-      0,           //CUVIS_INT permissive;
-      ps_settings, //CUVIS_PANSHARPENING_SETTINGS pansharpening_settings;
+      "",          // CUVIS_CHAR export_dir[CUVIS_MAXBUF]: set below
+      0,           // CUVIS_INT add_fullscale_pan
+      0,           // CUVIS_INT permissive: skip errors where possible
+      ps_settings, // CUVIS_PANSHARPENING_SETTINGS pansharpening_settings
   };
   char exportDirMulti[CUVIS_MAXBUF];
   strcpy(exportDirMulti, exportDir);
@@ -141,23 +141,56 @@ int main(int argc, char* argv[])
 
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings_view = {
       //initializer list only takes const char*, leave empty and modify afterwards.
-      "",          //CUVIS_CHAR export_dir[CUVIS_MAXBUF];
-      0,           //CUVIS_INT add_fullscale_pan;
-      0,           //CUVIS_INT permissive;
-      ps_settings, //CUVIS_PANSHARPENING_SETTINGS pansharpening_settings;
+      "",          // CUVIS_CHAR export_dir[CUVIS_MAXBUF]: set below
+      0,           // CUVIS_INT add_fullscale_pan
+      0,           // CUVIS_INT permissive: skip errors where possible
+      ps_settings, // CUVIS_PANSHARPENING_SETTINGS pansharpening_settings
   };
   char exportDirView[CUVIS_MAXBUF];
   strcpy(exportDirView, exportDir);
   strcat(exportDirView, "/view");
   strcpy(general_settings_view.export_dir, exportDirView);
 
-  CUVIS_EXPORT_CUBE_SETTINGS cube_settings_session = {0, 1, 0, 1, 1, OperationMode_Software, 1.0, 64, 128, 60000};
+  CUVIS_EXPORT_GENERAL_SETTINGS general_settings_pansharpen = {
+      //initializer list only takes const char*, leave empty and modify afterwards.
+      "", // CUVIS_CHAR export_dir[CUVIS_MAXBUF]: set below
+      0,  // CUVIS_INT add_fullscale_pan
+      0,  // CUVIS_INT permissive: skip errors where possible
+      {
+          "all",                                     // CUVIS_CHAR channel_selection[CUVIS_MAXBUF]
+          1.0,                                       // float spectra_multiplier
+          1.0,                                       // double pan_scale: 1.0 = resolution of the pan image
+          pan_sharpening_interpolation_type_Linear,  // CUVIS_PAN_SHAPRENING_INTERPOLATION_TYPE pan_interpolation_type
+          pan_sharpening_algorithm_CubertMacroPixel, // CUVIS_PAN_SHAPRENING_ALGORITHM_TYPE pan_algorithm
+          0,                                         // CUVIS_INT pre_pan_sharpen_cube: sharpen the whole cube first (slow)
+          0,                                         // CUVIS_INT add_pan
+      }, // CUVIS_PANSHARPENING_SETTINGS pansharpening_settings
+  };
+  char exportDirPansharpen[CUVIS_MAXBUF];
+  strcpy(exportDirPansharpen, exportDir);
+  strcat(exportDirPansharpen, "/pansharpened");
+  strcpy(general_settings_pansharpen.export_dir, exportDirPansharpen);
+
+  CUVIS_EXPORT_CUBE_SETTINGS cube_settings_session = {
+      session_merge_mode_Default, // CUVIS_SESSION_MERGE_MODE merge_mode
+      1,                          // CUVIS_INT allow_overwrite
+      0,                          // CUVIS_INT allow_drop: drop frames when the writer cannot keep up
+      1,                          // CUVIS_INT allow_session_file: write a .cu3s file
+      1,                          // CUVIS_INT allow_info_file: write a frame list next to it
+      OperationMode_Software,     // CUVIS_OPERATION_MODE operation_mode
+      1.0,                        // double fps: only for OperationMode_Internal
+      8,                          // CUVIS_INT soft_limit: buffer size for reordering frames
+      16,                         // CUVIS_INT hard_limit: max buffered frames
+      60000,                      // CUVIS_INT max_buftime: max time a frame is buffered [ms]
+      0,                          // CUVIS_INT full_export: include the cube
+  };
+
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings_session = {
       //initializer list only takes const char*, leave empty and modify afterwards.
-      "",          //CUVIS_CHAR export_dir[CUVIS_MAXBUF];
-      0,           //CUVIS_INT add_fullscale_pan;
-      0,           //CUVIS_INT permissive;
-      ps_settings, //CUVIS_PANSHARPENING_SETTINGS pansharpening_settings;
+      "",          // CUVIS_CHAR export_dir[CUVIS_MAXBUF]: set below
+      0,           // CUVIS_INT add_fullscale_pan
+      0,           // CUVIS_INT permissive: skip errors where possible
+      ps_settings, // CUVIS_PANSHARPENING_SETTINGS pansharpening_settings
   };
   char exportDirSession[CUVIS_MAXBUF];
   strcpy(exportDirSession, exportDir);
@@ -170,7 +203,26 @@ int main(int argc, char* argv[])
 
   printf("loading measurement ...\n");
   fflush(stdout);
-  CUVIS_CHECK(cuvis_session_file_get_mesu(sess, 0, session_item_type_frames_no_gaps, &mesu));
+  CUVIS_CHECK(cuvis_session_file_get_mesu(sess, mesuIndex, session_item_type_frames_no_gaps, &mesu));
+
+  // the exporters need a cube: SessionFiles are saved without it by default (Preview mode), so compute it now
+  CUVIS_MESU_METADATA mesu_data = {0};
+  CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
+  if (mesu_data.processing_mode == Preview)
+  {
+    CUVIS_PROC_CONT procCont;
+    CUVIS_CHECK(cuvis_proc_cont_create_from_session_file(sess, 0, &procCont)); // Cube_Raw needs no Dark or White reference
+    // distance calibration (see Example 3) with the measurement itself, as the demo file has no distance reference
+    // no CUVIS_CHECK: R models (relay optics) do not support distance calibration
+    cuvis_proc_cont_set_reference(procCont, mesu, Reference_Distance);
+    CUVIS_PROC_ARGS args = {
+        Cube_Raw, // CUVIS_PROCESSING_MODE processing_mode
+        0,        // CUVIS_INT allow_recalib
+    };
+    CUVIS_CHECK(cuvis_proc_cont_set_args(procCont, args));
+    CUVIS_CHECK(cuvis_proc_cont_apply(procCont, mesu));
+    cuvis_proc_cont_free(&procCont);
+  }
 
   printf("creating envi exporter ...\n");
   fflush(stdout);
@@ -200,8 +252,10 @@ int main(int argc, char* argv[])
   printf("creating single tiff exporter ...\n");
   fflush(stdout);
 
-  single_tiff_settings.compression_mode = tiff_compression_mode_None;
-  single_tiff_settings.format = tiff_format_Single;
+  CUVIS_EXPORT_TIFF_SETTINGS single_tiff_settings = {
+      tiff_compression_mode_None, // CUVIS_TIFF_COMPRESSION_MODE compression_mode
+      tiff_format_Single,         // CUVIS_TIFF_FORMAT format
+  };
   CUVIS_CHECK(cuvis_exporter_create_tiff(&single_tiff_exporter, general_settings_single, single_tiff_settings));
   printf(" done.\n");
   fflush(stdout);
@@ -209,8 +263,10 @@ int main(int argc, char* argv[])
   printf("creating multi tiff exporter ...\n");
   fflush(stdout);
 
-  multi_tiff_settings.compression_mode = tiff_compression_mode_None;
-  multi_tiff_settings.format = tiff_format_MultiChannel;
+  CUVIS_EXPORT_TIFF_SETTINGS multi_tiff_settings = {
+      tiff_compression_mode_None, // CUVIS_TIFF_COMPRESSION_MODE compression_mode
+      tiff_format_MultiChannel,   // CUVIS_TIFF_FORMAT format
+  };
   CUVIS_CHECK(cuvis_exporter_create_tiff(&multi_tiff_exporter, general_settings_multi, multi_tiff_settings));
   printf(" done.\n");
   fflush(stdout);
@@ -261,8 +317,27 @@ int main(int argc, char* argv[])
     return 0;
   }
 
-  view_settings.userplugin = buffer;
+  CUVIS_EXPORT_VIEW_SETTINGS view_settings = {
+      buffer, // CUVIS_CHAR const* userplugin: XML content of the plugin file
+      0,      // CUVIS_INT complete: also export elements not marked "show"
+      1,      // CUVIS_INT pan_failback: use the pan image if no cube is available
+  };
   CUVIS_CHECK(cuvis_exporter_create_view(&view_exporter, general_settings_view, view_settings));
+  printf(" done.\n");
+  fflush(stdout);
+
+  /*
+  * View Exporter - Pansharpening
+  * Only for cameras with a panchromatic sensor (P models, e.g. Ultris X20P).
+  * Pansharpening fuses the cube (high spectral resolution) with the pan image (high spatial resolution).
+  * It is set in the pansharpening settings of any exporter. With the *ViewExporter* it is applied after rendering the view, which is fast.
+  *    - `pan_scale`: 0.0 = off, 1.0 = resolution of the pan image
+  *    - `pan_algorithm`: `CubertMacroPixel` works in all processing modes, `CubertPanRatio` needs Reflectance mode, `Noop` only upscales
+  *    - `pre_pan_sharpen_cube`: sharpen the whole cube before rendering (more accurate, much slower)
+  */
+  printf("creating pansharpening view exporter ...\n");
+  fflush(stdout);
+  CUVIS_CHECK(cuvis_exporter_create_view(&pansharpen_exporter, general_settings_pansharpen, view_settings));
   printf(" done.\n");
   fflush(stdout);
 
@@ -312,6 +387,16 @@ int main(int argc, char* argv[])
   printf("done.\n");
   fflush(stdout);
 
+  CUVIS_IMBUFFER pan = {0};
+  if (cuvis_measurement_get_data_image(mesu, CUVIS_MESU_PAN_KEY, &pan) == status_ok) // only with a pan image
+  {
+    printf("export pansharpened view...");
+    fflush(stdout);
+    CUVIS_CHECK(cuvis_exporter_apply(pansharpen_exporter, mesu));
+    printf("done.\n");
+    fflush(stdout);
+  }
+
   printf("export cube (session)...");
   fflush(stdout);
 
@@ -325,6 +410,7 @@ int main(int argc, char* argv[])
   cuvis_exporter_free(&single_tiff_exporter);
   cuvis_exporter_free(&multi_tiff_exporter);
   cuvis_exporter_free(&view_exporter);
+  cuvis_exporter_free(&pansharpen_exporter);
   cuvis_exporter_free(&cube_exporter);
   cuvis_shutdown();
 

@@ -155,42 +155,41 @@ int main(int argc, char* argv[])
 
   printf("Prepare processing and export ...\n");
   CUVIS_PROC_ARGS args = {
-      Cube_Raw, // CUVIS_PROCESSING_MODE processing_mode
-      0,        // CUVIS_INT allow_recalib
+      .processing_mode = Cube_Raw,
+      .allow_recalib = 0,
   };
   CUVIS_CHECK(cuvis_proc_cont_is_capable(procCont, mesu, args, &is_capable));
 
   // pan sharpening settings
   CUVIS_PANSHARPENING_SETTINGS ps_settings = {
-      "all",                                             // CUVIS_CHAR channel_selection[CUVIS_MAXBUF]
-      1,                                                 // float spectra_multiplier
-      0.0,                                               // double pan_scale
-      pan_sharpening_interpolation_type_NearestNeighbor, // CUVIS_PAN_SHAPRENING_INTERPOLATION_TYPE pan_interpolation_type
-      pan_sharpening_algorithm_Noop,                     // CUVIS_PAN_SHAPRENING_ALGORITHM_TYPE pan_algorithm
-      0,                                                 // CUVIS_INT pre_pan_sharpen_cube
-      0,                                                 // CUVIS_INT add_pan
+      .channel_selection = "all",
+      .spectra_multiplier = 1,
+      .pan_scale = 0.0,
+      .pan_interpolation_type = pan_sharpening_interpolation_type_NearestNeighbor,
+      .pan_algorithm = pan_sharpening_algorithm_Noop,
+      .pre_pan_sharpen_cube = 0,
+      .add_pan = 0,
   };
 
   // Export settings: General processing of measurements
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-      "",          // CUVIS_CHAR export_dir[CUVIS_MAXBUF]: set below (initializer only takes const char*)
-      0,           // CUVIS_INT add_fullscale_pan
-      0,           // CUVIS_INT permissive: skip errors where possible
-      ps_settings, // CUVIS_PANSHARPENING_SETTINGS pansharpening_settings
+      .add_fullscale_pan = 0,
+      .permissive = 0, // skip errors where possible
+      .pansharpening_settings = ps_settings,
   };
 
   CUVIS_EXPORT_CUBE_SETTINGS cube_settings = {
-      session_merge_mode_Default, // CUVIS_SESSION_MERGE_MODE merge_mode
-      1,                          // CUVIS_INT allow_overwrite
-      0,                          // CUVIS_INT allow_drop: drop frames when the writer cannot keep up
-      1,                          // CUVIS_INT allow_session_file: write a .cu3s file
-      0,                          // CUVIS_INT allow_info_file: write a frame list next to it
-      OperationMode_Internal,     // CUVIS_OPERATION_MODE operation_mode
-      0.0,                        // double fps: only for OperationMode_Internal
-      20,                         // CUVIS_INT soft_limit: buffer size for reordering frames
-      100,                        // CUVIS_INT hard_limit: max buffered frames
-      10000,                      // CUVIS_INT max_buftime: max time a frame is buffered [ms]
-      0,                          // CUVIS_INT full_export: include the cube
+      .merge_mode = session_merge_mode_Default,
+      .allow_overwrite = 1,
+      .allow_drop = 0,         // drop frames when the writer cannot keep up
+      .allow_session_file = 1, // write a .cu3s file
+      .allow_info_file = 0,    // write a frame list next to it
+      .operation_mode = OperationMode_Internal,
+      .fps = 0.0,              // only for OperationMode_Internal
+      .soft_limit = 20,        // buffer size for reordering frames
+      .hard_limit = 100,       // max buffered frames
+      .max_buftime = 10000,    // max time a frame is buffered [ms]
+      .full_export = 0,        // raw data only, without the processed cube
   };
 
   if (1 == is_capable)

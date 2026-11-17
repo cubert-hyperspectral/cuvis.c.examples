@@ -107,8 +107,8 @@ int main(int argc, char* argv[])
     CUVIS_PROC_CONT procCont;
     CUVIS_CHECK(cuvis_proc_cont_create_from_session_file(sess, 0, &procCont)); // no references needed for Cube_Raw
     CUVIS_PROC_ARGS args = {
-        Cube_Raw, // CUVIS_PROCESSING_MODE processing_mode
-        0,        // CUVIS_INT allow_recalib
+        .processing_mode = Cube_Raw,
+        .allow_recalib = 0,
     };
     CUVIS_CHECK(cuvis_proc_cont_set_args(procCont, args));
     CUVIS_CHECK(cuvis_proc_cont_apply(procCont, mesu1));

@@ -166,50 +166,49 @@ int main(int argc, char* argv[])
 
   // pan sharpening settings
   CUVIS_PANSHARPENING_SETTINGS ps_settings = {
-      "all",                                             // CUVIS_CHAR channel_selection[CUVIS_MAXBUF]
-      1,                                                 // float spectra_multiplier
-      0.0,                                               // double pan_scale
-      pan_sharpening_interpolation_type_NearestNeighbor, // CUVIS_PAN_SHAPRENING_INTERPOLATION_TYPE pan_interpolation_type
-      pan_sharpening_algorithm_Noop,                     // CUVIS_PAN_SHAPRENING_ALGORITHM_TYPE pan_algorithm
-      0,                                                 // CUVIS_INT pre_pan_sharpen_cube
-      0,                                                 // CUVIS_INT add_pan
+      .channel_selection = "all",
+      .spectra_multiplier = 1,
+      .pan_scale = 0.0,
+      .pan_interpolation_type = pan_sharpening_interpolation_type_NearestNeighbor,
+      .pan_algorithm = pan_sharpening_algorithm_Noop,
+      .pre_pan_sharpen_cube = 0,
+      .add_pan = 0,
   };
 
   // Export settings: General processing of measurements
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-      "",          // CUVIS_CHAR export_dir[CUVIS_MAXBUF]: set below (initializer only takes const char*)
-      0,           // CUVIS_INT add_fullscale_pan
-      0,           // CUVIS_INT permissive: skip errors where possible
-      ps_settings, // CUVIS_PANSHARPENING_SETTINGS pansharpening_settings
+      .add_fullscale_pan = 0,
+      .permissive = 0, // skip errors where possible
+      .pansharpening_settings = ps_settings,
   };
       
   strcpy(general_settings.export_dir, recDir);
 
   CUVIS_EXPORT_CUBE_SETTINGS cube_settings = {
-      session_merge_mode_Default, // CUVIS_SESSION_MERGE_MODE merge_mode
-      1,                          // CUVIS_INT allow_overwrite
-      0,                          // CUVIS_INT allow_drop: drop frames when the writer cannot keep up
-      1,                          // CUVIS_INT allow_session_file: write a .cu3s file
-      1,                          // CUVIS_INT allow_info_file: write a frame list next to it
-      OperationMode_Internal,     // CUVIS_OPERATION_MODE operation_mode
-      fps,                        // double fps: only for OperationMode_Internal
-      2,                          // CUVIS_INT soft_limit: buffer size for reordering frames
-      4,                          // CUVIS_INT hard_limit: max buffered frames
-      10000,                      // CUVIS_INT max_buftime: max time a frame is buffered [ms]
-      0,                          // CUVIS_INT full_export: include the cube
+      .merge_mode = session_merge_mode_Default,
+      .allow_overwrite = 1,
+      .allow_drop = 0,         // drop frames when the writer cannot keep up
+      .allow_session_file = 1, // write a .cu3s file
+      .allow_info_file = 1,    // write a frame list next to it
+      .operation_mode = OperationMode_Internal,
+      .fps = fps,              // only for OperationMode_Internal
+      .soft_limit = 2,         // buffer size for reordering frames
+      .hard_limit = 4,         // max buffered frames
+      .max_buftime = 10000,    // max time a frame is buffered [ms]
+      .full_export = 0,        // raw data only, without the processed cube
   };
 
   CUVIS_CHECK(cuvis_exporter_create_cube(&cube_exporter, general_settings, cube_settings));
 
   CUVIS_PROC_ARGS procArgs = {
-      Cube_Raw, // CUVIS_PROCESSING_MODE processing_mode
-      0,        // CUVIS_INT allow_recalib
+      .processing_mode = Cube_Raw,
+      .allow_recalib = 0,
   };
 
   CUVIS_SESSION_INFO sess = {
-      "video", // CUVIS_CHAR name[CUVIS_MAXBUF]
-      0,       // CUVIS_INT session_no
-      0,       // CUVIS_INT sequence_no
+      .name = "video",
+      .session_no = 0,
+      .sequence_no = 0,
   };
   CUVIS_CHECK(cuvis_acq_cont_set_session_info(acqCont, &sess));
 
@@ -288,13 +287,13 @@ int main(int argc, char* argv[])
 
   CUVIS_WORKER worker;
   CUVIS_WORKER_SETTINGS worker_settings = {
-      10, // CUVIS_SIZE input_queue_size
-      2,  // CUVIS_SIZE mandatory_queue_size
-      2,  // CUVIS_SIZE supplementary_queue_size
-      5,  // CUVIS_SIZE output_queue_size
-      0,  // CUVIS_INT can_skip_measurements: skip measurements when the processing queue is full
-      1,  // CUVIS_INT can_skip_supplementary_steps: may skip view generation
-      1,  // CUVIS_INT can_drop_results: may drop results if the output queue is full
+      .input_queue_size = 10,
+      .mandatory_queue_size = 2,
+      .supplementary_queue_size = 2,
+      .output_queue_size = 5,
+      .can_skip_measurements = 0,        // skip measurements when the processing queue is full
+      .can_skip_supplementary_steps = 1, // may skip view generation
+      .can_drop_results = 1,             // may drop results if the output queue is full
   };
   cuvis_worker_create(&worker, worker_settings);
 

@@ -18,33 +18,32 @@ static int process_and_export(CUVIS_SESSION_FILE sess, CUVIS_PROC_CONT procCont,
   CUVIS_EXPORTER cube_exporter;
 
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-      "", // CUVIS_CHAR export_dir[CUVIS_MAXBUF]: set below (initializer only takes const char*)
-      0,  // CUVIS_INT add_fullscale_pan
-      0,  // CUVIS_INT permissive: skip errors where possible
-      {
-          "all",                                             // CUVIS_CHAR channel_selection[CUVIS_MAXBUF]
-          1,                                                 // float spectra_multiplier
-          0.0,                                               // double pan_scale
-          pan_sharpening_interpolation_type_NearestNeighbor, // CUVIS_PAN_SHAPRENING_INTERPOLATION_TYPE pan_interpolation_type
-          pan_sharpening_algorithm_Noop,                     // CUVIS_PAN_SHAPRENING_ALGORITHM_TYPE pan_algorithm
-          0,                                                 // CUVIS_INT pre_pan_sharpen_cube
-          0,                                                 // CUVIS_INT add_pan
-      }, // CUVIS_PANSHARPENING_SETTINGS pansharpening_settings
+      .add_fullscale_pan = 0,
+      .permissive = 0, // skip errors where possible
+      .pansharpening_settings = {
+          .channel_selection = "all",
+          .spectra_multiplier = 1,
+          .pan_scale = 0.0,
+          .pan_interpolation_type = pan_sharpening_interpolation_type_NearestNeighbor,
+          .pan_algorithm = pan_sharpening_algorithm_Noop,
+          .pre_pan_sharpen_cube = 0,
+          .add_pan = 0,
+      },
   };
   snprintf(general_settings.export_dir, CUVIS_MAXBUF, "%s/%s", out_dir, name);
 
   CUVIS_EXPORT_CUBE_SETTINGS cube_settings = {
-      session_merge_mode_Default, // CUVIS_SESSION_MERGE_MODE merge_mode
-      1,                          // CUVIS_INT allow_overwrite
-      0,                          // CUVIS_INT allow_drop: drop frames when the writer cannot keep up
-      1,                          // CUVIS_INT allow_session_file: write a .cu3s file
-      0,                          // CUVIS_INT allow_info_file: write a frame list next to it
-      OperationMode_Software,     // CUVIS_OPERATION_MODE operation_mode
-      0.0,                        // double fps: only for OperationMode_Internal
-      20,                         // CUVIS_INT soft_limit: buffer size for reordering frames
-      100,                        // CUVIS_INT hard_limit: max buffered frames
-      10000,                      // CUVIS_INT max_buftime: max time a frame is buffered [ms]
-      1,                          // CUVIS_INT full_export: include the reflectance cube in the export
+      .merge_mode = session_merge_mode_Default,
+      .allow_overwrite = 1,
+      .allow_drop = 0,         // drop frames when the writer cannot keep up
+      .allow_session_file = 1, // write a .cu3s file
+      .allow_info_file = 0,    // write a frame list next to it
+      .operation_mode = OperationMode_Software,
+      .fps = 0.0,              // only for OperationMode_Internal
+      .soft_limit = 20,        // buffer size for reordering frames
+      .hard_limit = 100,       // max buffered frames
+      .max_buftime = 10000,    // max time a frame is buffered [ms]
+      .full_export = 1,        // include the reflectance cube
   };
 
   printf("processing to reflectance with %s\n", name);
@@ -122,8 +121,8 @@ int main(int argc, char* argv[])
   CUVIS_CHECK(cuvis_session_file_load(measurementLoc, &sess));
   CUVIS_CHECK(cuvis_proc_cont_create_from_session_file(sess, 1, &procCont));
   CUVIS_PROC_ARGS args = {
-      Cube_Reflectance, // CUVIS_PROCESSING_MODE processing_mode
-      0,                // CUVIS_INT allow_recalib
+      .processing_mode = Cube_Reflectance,
+      .allow_recalib = 0,
   };
   CUVIS_CHECK(cuvis_proc_cont_set_args(procCont, args));
 
@@ -154,9 +153,9 @@ int main(int argc, char* argv[])
   const float certificate_reflectance[] = {0.80f, 0.86f, 0.91f, 0.94f, 0.95f, 0.96f, 0.96f, 0.96f, 0.95f, 0.94f, 0.93f};
 
   CUVIS_TARGET_SPECTRUM target = {
-      certificate_wavelengths, // float const* wavelengths
-      certificate_reflectance, // float const* values
-      11,                      // uint32_t count
+      .wavelengths = certificate_wavelengths,
+      .values = certificate_reflectance,
+      .count = 11,
   };
   CUVIS_CHECK(cuvis_proc_cont_set_reference_target_spectrum(procCont, &target));
 
@@ -205,11 +204,11 @@ int main(int argc, char* argv[])
   CUVIS_CHECK(cuvis_measurement_get_metadata(white, &white_data));
 
   CUVIS_SENSOR_SPECTRUM white_spectrum = {
-      white_wavelengths,           // float const* wavelengths
-      white_values,                // uint16_t const* values
-      white_cube.channels,         // uint32_t count
-      (uint16_t)strtol(image_info.pixel_format + strcspn(image_info.pixel_format, "0123456789"), NULL, 10), // uint16_t effective_bit_depth: from the pixel format
-      white_data.integration_time, // double integration_time [ms]
+      .wavelengths = white_wavelengths,
+      .values = white_values,
+      .count = white_cube.channels,
+      .effective_bit_depth = (uint16_t)strtol(image_info.pixel_format + strcspn(image_info.pixel_format, "0123456789"), NULL, 10), // from the pixel format, e.g. 12 for Mono12Packed
+      .integration_time = white_data.integration_time, // [ms]
   };
   CUVIS_CHECK(cuvis_proc_cont_set_reference_white_spectrum(procCont, &white_spectrum));
 

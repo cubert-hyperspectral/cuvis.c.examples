@@ -136,6 +136,11 @@ int main(int argc, char* argv[])
   if (white_cube.format != imbuffer_format_uint16)
   {
     printf("16 bit cube required for this example\n");
+    cuvis_measurement_free(&white);
+    cuvis_proc_cont_free(&darkSubProcCont);
+    cuvis_proc_cont_free(&procCont);
+    cuvis_session_file_free(&sess);
+    cuvis_shutdown();
     return -1;
   }
 

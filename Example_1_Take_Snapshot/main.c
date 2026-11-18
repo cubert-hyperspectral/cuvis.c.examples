@@ -115,6 +115,7 @@ int main(int argc, char* argv[])
   else
   {
     fprintf(stderr, "Unrecognized file format: %s\n", factoryDir);
+    cuvis_shutdown();
     return -1;
   }
 

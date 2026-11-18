@@ -290,10 +290,11 @@ int main(int argc, char* argv[])
     fseek(f, 0, SEEK_END);
     length = ftell(f);
     fseek(f, 0, SEEK_SET);
-    buffer = malloc(length);
+    buffer = malloc(length + 1);
     if (buffer)
     {
       fread(buffer, 1, length, f);
+      buffer[length] = '\0'; // userplugin is passed as a null-terminated string
     }
     fclose(f);
   }
@@ -302,7 +303,13 @@ int main(int argc, char* argv[])
     printf("failed to load plugin file\n");
     fflush(stdout);
 
-    return 0;
+    cuvis_exporter_free(&envi_exporter);
+    cuvis_exporter_free(&single_tiff_exporter);
+    cuvis_exporter_free(&multi_tiff_exporter);
+    cuvis_measurement_free(&mesu);
+    cuvis_session_file_free(&sess);
+    cuvis_shutdown();
+    return -1;
   }
 
   CUVIS_EXPORT_VIEW_SETTINGS view_settings = {

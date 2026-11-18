@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 
   int distance = atoi(distanceString); // in mm
 
-  printf("Example 07 change distance cpp \n");
+  printf("Example 08 change distance \n");
   printf(userSettingsDir);
   printf("\nsessionfile (.cu3s): ");
   printf(sessionLoc);
@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
   CUVIS_SESSION_FILE sess;
 
   CUVIS_MESU mesu;
-  CUVIS_MESU_METADATA mesu_data;
+  CUVIS_MESU_METADATA mesu_data = {0};
 
   CUVIS_PROC_CONT procCont;
 
@@ -108,50 +108,62 @@ int main(int argc, char* argv[])
 
   // pan sharpening settings
   CUVIS_PANSHARPENING_SETTINGS ps_settings = {
-      "all",
-      1,
-      0.0,
-      pan_sharpening_interpolation_type_NearestNeighbor,
-      pan_sharpening_algorithm_Noop,
-      0,
-      0};
+      .channel_selection = "all",
+      .spectra_multiplier = 1,
+      .pan_scale = 0.0,
+      .pan_interpolation_type = pan_sharpening_interpolation_type_NearestNeighbor,
+      .pan_algorithm = pan_sharpening_algorithm_Noop,
+      .pre_pan_sharpen_cube = 0,
+      .add_pan = 0,
+  };
 
   // Export settings: General processing of measurements
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-      "", // initializer list only takes const char*, leave empty and modify afterwards.
-      0,
-      0,
-      ps_settings};
+      .add_fullscale_pan = 0,
+      .permissive = 0, // skip errors where possible
+      .pansharpening_settings = ps_settings,
+  };
 
   strcpy(general_settings.export_dir, exportDir);
 
-  CUVIS_EXPORT_CUBE_SETTINGS cube_settings;
-  cube_settings.merge_mode = session_merge_mode_Default;
-  cube_settings.allow_overwrite = 1;
-  cube_settings.allow_session_file = 1;
+  CUVIS_EXPORT_CUBE_SETTINGS cube_settings = {
+      .merge_mode = session_merge_mode_Default,
+      .allow_overwrite = 1,
+      .allow_drop = 0,         // drop frames when the writer cannot keep up
+      .allow_session_file = 1, // write a .cu3s file
+      .allow_info_file = 1,    // write a frame list next to it
+      .operation_mode = OperationMode_Software,
+      .fps = 0.0,              // only for OperationMode_Internal
+      .soft_limit = 20,        // buffer size for reordering frames
+      .hard_limit = 100,       // max buffered frames
+      .max_buftime = 10000,    // max time a frame is buffered [ms]
+      .full_export = 0,        // raw data only, without the processed cube
+  };
 
   cuvis_exporter_create_cube(&cube_exporter, general_settings, cube_settings);
 
   /*
   * Distance Calibration
-  * Most Ultris cameras (except for Relay-variants) require distance calibration to achieve optimal results.
+  * Most Ultris cameras (except for relay variants) require distance calibration to achieve optimal results.
   *
-  * Please note: The provided default demo dataset was recorded with a relay-equipped camera (Ultris XM with relay optics). Thus this step is not applicable to this dataset.
+  * Please note: Setting the distance in mm is not supported for R models (relay optics, e.g. Ultris XMR) and P models (pan sensor, e.g. Ultris X20P). P models support distance calibration with a distance reference measurement instead (see Example 3).
   *
   * Distance calibration is an operation that can be done with already recorded data and requires a distance reference measurement.
   * The reference should contain high-contrast data over the relevant spectral channels at the desired distance that data should be calibrated to.
   *
-  * In this example, the measurement itself will be used as the distance reference.If the target object is suitable (high contrast, non-repeating patterns), this can suffice for good results.
+  * If the distance to the object is known, it can also be set directly in mm, without a distance reference measurement. This example does that.
   */
   printf("Set distance ...");
   fflush(stdout);
-  // CUVIS_CHECK(cuvis_proc_cont_calc_distance(procCont, distance)); // throws error on pan image
+  // no CUVIS_CHECK: fails on R and P models, the example continues without it
   cuvis_proc_cont_calc_distance(procCont, distance);
   printf(" done. \n");
   fflush(stdout);
 
-  CUVIS_PROC_ARGS args;
-  args.processing_mode = Cube_Raw;
+  CUVIS_PROC_ARGS args = {
+      .processing_mode = Cube_Raw,
+      .allow_recalib = 0,
+  };
 
   CUVIS_CHECK(cuvis_proc_cont_is_capable(procCont, mesu, args, &is_capable));
 

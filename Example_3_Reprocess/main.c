@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
   CUVIS_SESSION_FILE sessDistance;
 
   CUVIS_MESU mesu;
-  CUVIS_MESU_METADATA mesu_data;
+  CUVIS_MESU_METADATA mesu_data = {0};
   CUVIS_MESU dark;
   CUVIS_MESU white;
   CUVIS_MESU distance;
@@ -123,9 +123,20 @@ int main(int argc, char* argv[])
   printf("loading measurement... \n");
   fflush(stdout);
   CUVIS_CHECK(cuvis_session_file_get_mesu(sessMesu, 0, session_item_type_frames_no_gaps, &mesu));
-  CUVIS_CHECK(cuvis_session_file_get_mesu(sessDark, 0, session_item_type_frames_no_gaps, &dark));
-  CUVIS_CHECK(cuvis_session_file_get_mesu(sessWhite, 0, session_item_type_frames_no_gaps, &white));
-  CUVIS_CHECK(cuvis_session_file_get_mesu(sessDistance, 0, session_item_type_frames_no_gaps, &distance));
+  // use the reference stored in the file (e.g. the demo data), otherwise its first measurement
+  if (cuvis_session_file_get_reference_mesu(sessDark, 0, Reference_Dark, &dark) != status_ok)
+  {
+    CUVIS_CHECK(cuvis_session_file_get_mesu(sessDark, 0, session_item_type_frames_no_gaps, &dark));
+  }
+  if (cuvis_session_file_get_reference_mesu(sessWhite, 0, Reference_White, &white) != status_ok)
+  {
+    CUVIS_CHECK(cuvis_session_file_get_mesu(sessWhite, 0, session_item_type_frames_no_gaps, &white));
+  }
+  // Distance: not supported for R models (relay optics, e.g. Ultris XMR), P models only support a distance reference
+  if (cuvis_session_file_get_reference_mesu(sessDistance, 0, Reference_Distance, &distance) != status_ok)
+  {
+    CUVIS_CHECK(cuvis_session_file_get_mesu(sessDistance, 0, session_item_type_frames_no_gaps, &distance));
+  }
 
   CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
   printf("data 1 %s %.2f ms mode=%d flags=%d\n", mesu_data.name, mesu_data.integration_time, mesu_data.processing_mode, mesu_data.measurement_flags);
@@ -143,34 +154,43 @@ int main(int argc, char* argv[])
   CUVIS_CHECK(cuvis_proc_cont_set_reference(procCont, distance, Reference_Distance));
 
   printf("Prepare processing and export ...\n");
-  CUVIS_PROC_ARGS args;
-  args.processing_mode = Cube_Raw;
-  args.allow_recalib = 0;
+  CUVIS_PROC_ARGS args = {
+      .processing_mode = Cube_Raw,
+      .allow_recalib = 0,
+  };
   CUVIS_CHECK(cuvis_proc_cont_is_capable(procCont, mesu, args, &is_capable));
 
   // pan sharpening settings
   CUVIS_PANSHARPENING_SETTINGS ps_settings = {
-      "all",
-      1,
-      0.0,
-      pan_sharpening_interpolation_type_NearestNeighbor,
-      pan_sharpening_algorithm_Noop,
-      0,
-      0};
+      .channel_selection = "all",
+      .spectra_multiplier = 1,
+      .pan_scale = 0.0,
+      .pan_interpolation_type = pan_sharpening_interpolation_type_NearestNeighbor,
+      .pan_algorithm = pan_sharpening_algorithm_Noop,
+      .pre_pan_sharpen_cube = 0,
+      .add_pan = 0,
+  };
 
   // Export settings: General processing of measurements
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-      "", // initializer list only takes const char*, leave empty and modify afterwards.
-      0,
-      0,
-      ps_settings};
+      .add_fullscale_pan = 0,
+      .permissive = 0, // skip errors where possible
+      .pansharpening_settings = ps_settings,
+  };
 
-  CUVIS_EXPORT_CUBE_SETTINGS cube_settings;
-  cube_settings.merge_mode = session_merge_mode_Default;
-  cube_settings.allow_overwrite = 1;
-  cube_settings.allow_session_file = 1;
-  cube_settings.operation_mode = OperationMode_Internal;
-  cube_settings.allow_info_file = 0;
+  CUVIS_EXPORT_CUBE_SETTINGS cube_settings = {
+      .merge_mode = session_merge_mode_Default,
+      .allow_overwrite = 1,
+      .allow_drop = 0,         // drop frames when the writer cannot keep up
+      .allow_session_file = 1, // write a .cu3s file
+      .allow_info_file = 0,    // write a frame list next to it
+      .operation_mode = OperationMode_Internal,
+      .fps = 0.0,              // only for OperationMode_Internal
+      .soft_limit = 20,        // buffer size for reordering frames
+      .hard_limit = 100,       // max buffered frames
+      .max_buftime = 10000,    // max time a frame is buffered [ms]
+      .full_export = 0,        // raw data only, without the processed cube
+  };
 
   if (1 == is_capable)
   {

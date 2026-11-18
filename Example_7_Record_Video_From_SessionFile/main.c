@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
   }
   double fps = atof(fpsString);
 
-  printf("Example 06 video");
+  printf("Example 07 video");
   printf("\nUser Settings Dir: ");
   printf(userSettingsDir);
   printf("\nSessionfile: ");
@@ -114,45 +114,57 @@ int main(int argc, char* argv[])
 
   // pan sharpening settings
   CUVIS_PANSHARPENING_SETTINGS ps_settings = {
-      "all",
-      1,
-      0.0,
-      pan_sharpening_interpolation_type_NearestNeighbor,
-      pan_sharpening_algorithm_Noop,
-      0,
-      0};
+      .channel_selection = "all",
+      .spectra_multiplier = 1,
+      .pan_scale = 0.0,
+      .pan_interpolation_type = pan_sharpening_interpolation_type_NearestNeighbor,
+      .pan_algorithm = pan_sharpening_algorithm_Noop,
+      .pre_pan_sharpen_cube = 0,
+      .add_pan = 0,
+  };
 
   // Export settings: General processing of measurements
   CUVIS_EXPORT_GENERAL_SETTINGS general_settings = {
-      "", // initializer list only takes const char*, leave empty and modify afterwards.
-      0,
-      0,
-      ps_settings};
+      .add_fullscale_pan = 0,
+      .permissive = 0, // skip errors where possible
+      .pansharpening_settings = ps_settings,
+  };
 
   strcpy(general_settings.export_dir, recDir);
 
-  CUVIS_EXPORT_CUBE_SETTINGS cube_settings;
-  cube_settings.merge_mode = session_merge_mode_Default;
-  cube_settings.allow_overwrite = 1;
-  cube_settings.allow_session_file = 1;
-  cube_settings.fps = fps;
-  cube_settings.operation_mode = OperationMode_Internal;
-  cube_settings.allow_info_file = 1;
+  CUVIS_EXPORT_CUBE_SETTINGS cube_settings = {
+      .merge_mode = session_merge_mode_Default,
+      .allow_overwrite = 1,
+      .allow_drop = 0,         // drop frames when the writer cannot keep up
+      .allow_session_file = 1, // write a .cu3s file
+      .allow_info_file = 1,    // write a frame list next to it
+      .operation_mode = OperationMode_Internal,
+      .fps = fps,              // only for OperationMode_Internal
+      .soft_limit = 20,        // buffer size for reordering frames
+      .hard_limit = 100,       // max buffered frames
+      .max_buftime = 10000,    // max time a frame is buffered [ms]
+      .full_export = 0,        // raw data only, without the processed cube
+  };
 
   CUVIS_CHECK(cuvis_exporter_create_cube(&cube_exporter, general_settings, cube_settings));
 
-  CUVIS_PROC_ARGS procArgs;
-  procArgs.allow_recalib = 0;
-  procArgs.processing_mode = Cube_Raw;
+  CUVIS_PROC_ARGS procArgs = {
+      .processing_mode = Cube_Raw,
+      .allow_recalib = 0,
+  };
 
-  CUVIS_SESSION_INFO sess = {"video", 0, 0};
+  CUVIS_SESSION_INFO sess = {
+      .name = "video",
+      .session_no = 0,
+      .sequence_no = 0,
+  };
   CUVIS_CHECK(cuvis_acq_cont_set_session_info(acqCont, &sess));
 
   printf("waiting for simulated camera to become ready...\n");
   fflush(stdout);
   for (;;)
   {
-    CUVIS_HARDWARE_STATE state;
+    CUVIS_HARDWARE_STATE state = hardware_state_offline;
     CUVIS_CHECK(cuvis_acq_cont_get_state(acqCont, &state));
 
     if (state == hardware_state_online)
@@ -184,7 +196,7 @@ int main(int argc, char* argv[])
   for (int compIdx = 0; compIdx < compCount; compIdx++)
   {
     CUVIS_INT online;
-    CUVIS_COMPONENT_INFO cinfo;
+    CUVIS_COMPONENT_INFO cinfo = {0};
 
     CUVIS_CHECK(cuvis_acq_cont_get_component_info(acqCont, compIdx, &cinfo));
     CUVIS_CHECK(cuvis_comp_online_get(acqCont, compIdx, &online));
@@ -218,14 +230,15 @@ int main(int argc, char* argv[])
   CUVIS_CHECK(cuvis_proc_cont_set_args(procCont, procArgs));
 
   CUVIS_WORKER worker;
-  CUVIS_WORKER_SETTINGS worker_settings;
-  worker_settings.can_skip_measurements = 0;        // Worker cannot skip exporting measurements
-  worker_settings.can_skip_supplementary_steps = 1; // Worker can skip view generation
-  worker_settings.can_drop_results = 1;             // Worker can drop results from the output queue, if it is full
-  worker_settings.input_queue_size = 10;
-  worker_settings.output_queue_size = 5;
-  worker_settings.mandatory_queue_size = 2;
-  worker_settings.supplementary_queue_size = 2;
+  CUVIS_WORKER_SETTINGS worker_settings = {
+      .input_queue_size = 10,
+      .mandatory_queue_size = 2,
+      .supplementary_queue_size = 2,
+      .output_queue_size = 5,
+      .can_skip_measurements = 0,        // skip measurements when the processing queue is full
+      .can_skip_supplementary_steps = 1, // may skip view generation
+      .can_drop_results = 1,             // may drop results if the output queue is full
+  };
   cuvis_worker_create(&worker, worker_settings);
 
   cuvis_worker_set_acq_cont(worker, acqCont);
@@ -264,7 +277,7 @@ int main(int argc, char* argv[])
       fflush(stdout);
     }
 
-    CUVIS_STATUS ret = cuvis_worker_get_next_result(acqCont, &mesu, NULL, 1000);
+    CUVIS_STATUS ret = cuvis_worker_get_next_result(worker, &mesu, NULL, 1000);
     if (ret == status_not_available)
     {
       printf("Worker has no measurement ready yet...");
@@ -277,7 +290,7 @@ int main(int argc, char* argv[])
 
     if (mesu)
     {
-      CUVIS_MESU_METADATA mesu_data;
+      CUVIS_MESU_METADATA mesu_data = {0};
       CUVIS_CHECK(cuvis_measurement_get_metadata(mesu, &mesu_data));
       printf("\rcurrent handle index: %04d", mesu_data.session_info_sequence_no);
       fflush(stdout);
